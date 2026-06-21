@@ -1,0 +1,48 @@
+[
+    {
+        "name": "University Pattern 1",
+        "exam_type": "University",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 10,
+                "marks_per_question": 2,
+                "description": "Short Answer (2 from each Unit)"
+            },
+            {
+                "name": "Part B",
+                "questions": 5,
+                "marks_per_question": 13,
+                "description": "Long Answer (1 from each Unit)"
+            },
+            {
+                "name": "Part C",
+                "questions": 1,
+                "marks_per_question": 15,
+                "description": "Application/Case Study (Unit V)"
+            }
+        ],
+        "total_marks": 100,
+        "time_minutes": 180
+    },
+    {
+        "name": "University Pattern 2",
+        "exam_type": "University",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 10,
+                "marks_per_question": 2,
+                "description": "Short Answer (2 from each Unit)"
+            },
+            {
+                "name": "Part B",
+                "questions": 5,
+                "marks_per_question": 16,
+                "description": "Long Answer (1 from each Unit)"
+            }
+        ],
+        "total_marks": 100,
+        "time_minutes": 180
+    }
+]

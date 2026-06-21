@@ -1,0 +1,42 @@
+[
+    {
+        "name": "CAT-3 (Unit IV & V) - Standard",
+        "exam_type": "CAT3",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 10,
+                "marks_per_question": 2,
+                "description": "10 Questions (5 from Unit IV, 5 from Unit V)"
+            },
+            {
+                "name": "Part B",
+                "questions": 2,
+                "marks_per_question": 15,
+                "description": "2 Questions (1 from Unit IV, 1 from Unit V) with internal choice"
+            }
+        ],
+        "total_marks": 50,
+        "time_minutes": 90
+    },
+    {
+        "name": "CAT-3 (Unit IV & V) - Alternate",
+        "exam_type": "CAT3",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 12,
+                "marks_per_question": 2,
+                "description": "12 Questions (6 from Unit IV, 6 from Unit V)"
+            },
+            {
+                "name": "Part B",
+                "questions": 2,
+                "marks_per_question": 13,
+                "description": "2 Questions (1 from Unit IV, 1 from Unit V) with internal choice"
+            }
+        ],
+        "total_marks": 50,
+        "time_minutes": 90
+    }
+]

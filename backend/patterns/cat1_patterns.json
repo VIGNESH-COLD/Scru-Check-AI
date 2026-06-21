@@ -1,0 +1,42 @@
+[
+    {
+        "name": "CAT-1 (Unit I & II) - Standard",
+        "exam_type": "CAT1",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 10,
+                "marks_per_question": 2,
+                "description": "10 Questions (5 from Unit I, 5 from Unit II)"
+            },
+            {
+                "name": "Part B",
+                "questions": 2,
+                "marks_per_question": 15,
+                "description": "2 Questions (1 from Unit I, 1 from Unit II) with internal choice"
+            }
+        ],
+        "total_marks": 50,
+        "time_minutes": 90
+    },
+    {
+        "name": "CAT-1 (Unit I & II) - Alternate",
+        "exam_type": "CAT1",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 12,
+                "marks_per_question": 2,
+                "description": "12 Questions (6 from Unit I, 6 from Unit II)"
+            },
+            {
+                "name": "Part B",
+                "questions": 2,
+                "marks_per_question": 13,
+                "description": "2 Questions (1 from Unit I, 1 from Unit II) with internal choice"
+            }
+        ],
+        "total_marks": 50,
+        "time_minutes": 90
+    }
+]

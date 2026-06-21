@@ -1,0 +1,22 @@
+[
+    {
+        "name": "CAT-2 (Unit III)",
+        "exam_type": "CAT2",
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 5,
+                "marks_per_question": 2,
+                "description": "5 Questions from Unit III"
+            },
+            {
+                "name": "Part B",
+                "questions": 1,
+                "marks_per_question": 15,
+                "description": "1 Question from Unit III with internal choice"
+            }
+        ],
+        "total_marks": 25,
+        "time_minutes": 60
+    }
+]

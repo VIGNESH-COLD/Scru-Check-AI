@@ -1,0 +1,104 @@
+{"timestamp": "2026-01-18T12:19:10.847687Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_174910", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T12:19:38.787065Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_174938", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T12:41:48.049165Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_181148", "status": "APPROVED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T12:50:19.656365Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_182019", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T13:32:41.099692Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_190241", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T13:43:40.117916Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_191340", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T13:57:09.085001Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_192709", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T13:59:34.446447Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_192934", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:11:20.794504Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_194120", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:14:17.604229Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_194417", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:15:06.460455Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_194506", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:20:48.872388Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_195048", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 2, "user": "system"}
+{"timestamp": "2026-01-18T14:22:54.583952Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_195254", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T14:28:04.285273Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_195804", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:30:03.512773Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_200003", "status": "APPROVED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T14:35:26.929630Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_200526", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-18T14:40:56.919204Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_201056", "status": "APPROVED", "findings_count": 10, "passed_count": 3, "user": "system"}
+{"timestamp": "2026-01-18T14:48:04.587329Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_201804", "status": "APPROVED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T14:48:52.758089Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_201852", "status": "APPROVED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-18T15:00:23.319264Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260118_203023", "status": "APPROVED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T15:49:57.366110Z", "action": "ERROR", "error": "File is not a zip file", "context": {}}
+{"timestamp": "2026-01-19T16:02:05.377077Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_213205", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T16:09:37.339014Z", "action": "ERROR", "error": "File is not a zip file", "context": {}}
+{"timestamp": "2026-01-19T16:12:30.378680Z", "action": "ERROR", "error": "File is not a zip file", "context": {}}
+{"timestamp": "2026-01-19T16:14:15.032520Z", "action": "ERROR", "error": "File is not a zip file", "context": {}}
+{"timestamp": "2026-01-19T17:00:14.030348Z", "action": "ERROR", "error": "Bad magic number for central directory", "context": {}}
+{"timestamp": "2026-01-19T17:14:00.720196Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_224400", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T17:19:06.328282Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_224906", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T17:32:19.297127Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_230219", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T17:38:30.674705Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_230830", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-19T17:41:36.677935Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260119_231136", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-01-26T09:43:24.849697Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260126_151324", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-01-26T09:45:21.906931Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260126_151521", "status": "REJECTED", "findings_count": 10, "passed_count": 6, "user": "system"}
+{"timestamp": "2026-01-30T04:01:59.751221Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260130_093159", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-02-08T02:33:13.083973Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:33:13.090451Z", "action": "LOGIN", "user": "admin", "success": false, "ip_address": null}
+{"timestamp": "2026-02-08T02:33:13.098344Z", "action": "LOGIN", "user": "faculty_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:33:13.102357Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:37:50.326246Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:38:09.698199Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:38:18.087746Z", "action": "LOGIN", "user": "faculty_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-02-08T02:39:25.923561Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260208_080925", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-04-14T07:11:06.829577Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260414_124106", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-04-14T07:49:05.954187Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260414_131905", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-04-14T08:37:54.640641Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-14T08:39:35.570115Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260414_140935", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-04-14T08:57:46.298398Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260414_142746", "status": "REJECTED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-04-24T11:34:03.468674Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T11:43:33.603187Z", "action": "LOGIN", "user": "faculty_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T11:43:47.649221Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T11:50:59.735807Z", "action": "LOGIN", "user": "faculty_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:08:33.749325Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:08:40.559360Z", "action": "LOGIN", "user": "faculty_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:08:44.787952Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:08:50.954665Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:35:51.167186Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-24T12:44:33.774388Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-25T13:45:00.182517Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-04-25T13:45:15.984469Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-25T13:45:52.976511Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-25T14:10:04.314300Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-04-25T14:14:51.418865Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-04T17:50:34.617040Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-04T18:07:41.062348Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-04T18:08:46.528799Z", "action": "ERROR", "error": "'str' object has no attribute 'get'", "context": {}}
+{"timestamp": "2026-06-05T15:23:10.430922Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:24:02.235634Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_205402", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T15:26:16.653892Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:27:13.681405Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_205713", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T15:27:13.684943Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:27:13.686088Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:28:02.822408Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_205802", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T15:28:39.781920Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_205839", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T15:28:39.788535Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:31:01.005904Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_210101", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-06-05T15:39:28.588740Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:40:39.305074Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_211039", "status": "APPROVED", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T15:43:17.675477Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_211317", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-06-05T15:53:36.962443Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T15:59:17.586343Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_212917", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-06-05T16:13:31.181024Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_214331", "status": "REJECTED", "findings_count": 10, "passed_count": 4, "user": "system"}
+{"timestamp": "2026-06-05T16:23:56.080079Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T16:24:37.466610Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_215437", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T16:29:36.745604Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_215936", "status": "APPROVED", "findings_count": 10, "passed_count": 8, "user": "system"}
+{"timestamp": "2026-06-05T16:48:09.787044Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T16:52:21.244128Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T16:58:40.305436Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_222840", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 5, "user": "system"}
+{"timestamp": "2026-06-05T17:37:58.409728Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-05T17:38:56.423196Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_230856", "status": "CONDITIONAL", "findings_count": 10, "passed_count": 6, "user": "system"}
+{"timestamp": "2026-06-05T17:42:05.555710Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_231205", "status": "APPROVED", "findings_count": 10, "passed_count": 7, "user": "system"}
+{"timestamp": "2026-06-05T17:54:22.779643Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260605_232422", "status": "APPROVED", "findings_count": 10, "passed_count": 7, "user": "system"}
+{"timestamp": "2026-06-20T12:00:20.279605Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-20T12:15:08.168373Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-20T12:19:15.559059Z", "action": "ERROR", "error": "EOF marker not found", "context": {}}
+{"timestamp": "2026-06-20T12:24:26.508041Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-20T12:25:50.650139Z", "action": "LOGIN", "user": "hod_demo", "success": true, "ip_address": null}
+{"timestamp": "2026-06-21T13:58:42.251539Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-21T13:59:57.418925Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-21T14:08:44.959589Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_193844", "status": "APPROVED", "findings_count": 10, "passed_count": 7, "user": "system"}
+{"timestamp": "2026-06-21T14:35:02.792367Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_200502", "status": "APPROVED", "findings_count": 10, "passed_count": 7, "user": "system"}
+{"timestamp": "2026-06-21T15:44:37.790673Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-21T15:46:17.313714Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_211617", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
+{"timestamp": "2026-06-21T15:56:12.670287Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_212612", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
+{"timestamp": "2026-06-21T16:09:06.158057Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_213906", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
