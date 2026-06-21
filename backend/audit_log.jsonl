@@ -102,3 +102,5 @@
 {"timestamp": "2026-06-21T15:46:17.313714Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_211617", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
 {"timestamp": "2026-06-21T15:56:12.670287Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_212612", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
 {"timestamp": "2026-06-21T16:09:06.158057Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_213906", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
+{"timestamp": "2026-06-21T17:02:08.231879Z", "action": "LOGIN", "user": "admin", "success": true, "ip_address": null}
+{"timestamp": "2026-06-21T17:03:39.269358Z", "action": "ANALYZE_PAPER", "paper_id": "PAPER_20260621_223339", "status": "APPROVED", "findings_count": 9, "passed_count": 0, "user": "system"}
