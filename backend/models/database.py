@@ -93,6 +93,7 @@ if SQLALCHEMY_AVAILABLE:
         timestamp = Column(DateTime, default=datetime.utcnow)
         overall_status = Column(String(20))
         findings = Column(JSON)
+        data = Column(JSON)  # Stores the full analysis dictionary (RESULTS_STORE equivalent)
         created_by = Column(String(100))
         department = Column(String(50))
 

@@ -81,30 +81,41 @@ class ScrutinyEngine:
         syllabus: Dict[str, Any],
         previous_paper: Optional[Dict[str, Any]] = None,
         pattern: Optional[str] = None,
+        pattern_obj: Optional[Dict[str, Any]] = None,
         department: Optional[str] = None,
         regulation: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Run all 9 scrutiny criteria in parallel.
         Returns aggregated findings split into mandatory + quality sections.
+
+        pattern_obj: the fully-resolved pattern dict chosen by the user in the
+                     frontend. This is the SOURCE OF TRUTH for format validation.
+                     When provided, format_validator compares the uploaded paper
+                     against this object — NOT against the paper itself.
         """
         
         # Run all analyzers in parallel using asyncio.gather
         results = await asyncio.gather(
             # Section 1: Mandatory (4)
-            self._run_with_fallback("format_compliance", 
-                self.format_validator.analyze, question_paper, pattern),
+            # IMPORTANT: format_validator receives pattern_obj (the user-selected
+            # pattern) so it compares the paper against the EXPECTED pattern,
+            # not against itself.
+            self._run_with_fallback("format_compliance",
+                self.format_validator.analyze, question_paper, pattern_obj),
             self._run_with_fallback("regulation_check",
                 self.regulation_checker.analyze, question_paper, regulation, department),
             self._run_with_fallback("mark_distribution",
-                self.marks_analyzer.analyze, question_paper, pattern),
+                self.marks_analyzer.analyze, question_paper, pattern_obj),
             self._run_with_fallback("permitted_aids",
                 self.permitted_aids_checker.analyze, question_paper),
             # Section 2: Quality (5)
+            # syllabus_mapper and blooms_classifier also receive pattern_obj
+            # so they can determine exam_type and allowed units without re-parsing JSON.
             self._run_with_fallback("syllabus_alignment",
-                self.syllabus_mapper.analyze, question_paper, syllabus, pattern),
+                self.syllabus_mapper.analyze, question_paper, syllabus, pattern_obj),
             self._run_with_fallback("blooms_taxonomy",
-                self.blooms_classifier.analyze, question_paper, syllabus, pattern),
+                self.blooms_classifier.analyze, question_paper, syllabus, pattern_obj),
             self._run_with_fallback("grammar_clarity",
                 self.grammar_checker.analyze, question_paper),
             self._run_with_fallback("repetition_check",

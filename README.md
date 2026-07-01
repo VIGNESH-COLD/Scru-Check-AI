@@ -39,7 +39,6 @@ ScruCheck AI automatically analyzes question papers against **10 scrutiny criter
 ```bash
 cd backend
 python -m venv venv
-.\venv\Scripts\activate   # Windows
 pip install -r requirements.txt
 
 # Create .env file
@@ -47,7 +46,7 @@ echo MISTRAL_API_KEY=your_key > .env
 echo SECRET_KEY=your_jwt_secret >> .env
 
 # Run server
-uvicorn main:app --host 127.0.0.1 --port 8000
+ .\venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### Frontend Setup
@@ -66,9 +65,11 @@ Open **http://localhost:5173** in your browser.
 
 | Username | Password | Role | Permissions |
 |----------|----------|------|-------------|
-| `admin` | `admin123` | COE | Full access, manage users |
-| `hod_demo` | `hod123` | HOD | Department access, external links |
-| `faculty_demo` | `faculty123` | Faculty | Upload, view own papers |
+| `admin` | `admin123` | COE | Full access (16 permissions) |
+| `hod_demo` | `hod123` | HOD | Department oversight (11 permissions) |
+| `faculty_demo` | `faculty123` | Faculty | Upload & view own (5 permissions) |
+| `auditor_demo` | `auditor123` | Auditor | Read-only compliance view (5 permissions) |
+| `external_demo` | `external123` | External | Token-scoped read-only (2 permissions) |
 
 ---
 

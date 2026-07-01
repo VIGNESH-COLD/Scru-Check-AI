@@ -4,6 +4,7 @@ Handles login, register, user management, and external access
 """
 
 import sys
+import os
 try:
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
@@ -12,9 +13,10 @@ except AttributeError:
 
 from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
-from datetime import datetime
-
+from typing import Optional, List, Dict
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from models.database import get_db, AnalysisReport
 from auth.jwt_handler import (
     hash_password, 
     verify_password, 
@@ -45,35 +47,58 @@ def _init_demo_users():
         return  # Already initialized
     
     USERS_STORE = {
+        # COE — full system access (16 permissions)
         "admin": {
             "username": "admin",
-            "email": "admin@scrucheck.edu",
+            "email": "coe@scrucheck.edu",
             "password_hash": hash_password("admin123"),
-            "full_name": "System Administrator",
+            "full_name": "Controller of Examinations",
             "role": "coe",
             "department": "all",
             "is_active": True
         },
-        "faculty_demo": {
-            "username": "faculty_demo",
-            "email": "faculty@scrucheck.edu",
-            "password_hash": hash_password("faculty123"),
-            "full_name": "Demo Faculty",
-            "role": "faculty",
-            "department": "CSE",
-            "is_active": True
-        },
+        # HOD — department-level oversight (11 permissions)
         "hod_demo": {
             "username": "hod_demo",
             "email": "hod@scrucheck.edu",
             "password_hash": hash_password("hod123"),
-            "full_name": "Demo HOD",
+            "full_name": "Dr. Head of Department",
             "role": "hod",
             "department": "CSE",
             "is_active": True
-        }
+        },
+        # Faculty — upload & analyze own papers (5 permissions)
+        "faculty_demo": {
+            "username": "faculty_demo",
+            "email": "faculty@scrucheck.edu",
+            "password_hash": hash_password("faculty123"),
+            "full_name": "Prof. Demo Faculty",
+            "role": "faculty",
+            "department": "CSE",
+            "is_active": True
+        },
+        # Auditor — read-only compliance view (5 permissions)
+        "auditor_demo": {
+            "username": "auditor_demo",
+            "email": "auditor@scrucheck.edu",
+            "password_hash": hash_password("auditor123"),
+            "full_name": "Academic Auditor",
+            "role": "auditor",
+            "department": "all",
+            "is_active": True
+        },
+        # External Examiner — token-scoped read only (2 permissions)
+        "external_demo": {
+            "username": "external_demo",
+            "email": "external@scrucheck.edu",
+            "password_hash": hash_password("external123"),
+            "full_name": "External Examiner",
+            "role": "external",
+            "department": "none",
+            "is_active": True
+        },
     }
-    print("✅ Demo users initialized")
+    print("✅ Demo users initialized: admin (COE), hod_demo, faculty_demo, auditor_demo, external_demo")
 
 
 # Pydantic models
@@ -307,9 +332,15 @@ async def generate_external_link(
         expires_hours=request.expires_hours
     )
     
+    public_url = os.getenv("APP_PUBLIC_URL", "").rstrip("/")
+    if public_url:
+        full_access_url = f"{public_url}/external/{result['token']}"
+    else:
+        full_access_url = f"/external/{result['token']}"
+
     return {
         "token": result["token"],
-        "access_url": f"/external/view/{result['token']}",
+        "access_url": full_access_url,
         "expires_at": result["expires_at"],
         "expires_in_hours": result["expires_in_hours"],
         "paper_count": result["paper_count"]
@@ -332,7 +363,7 @@ async def verify_external_token(token: str):
 
 
 @external_router.get("/view/{token}")
-async def view_external_papers(token: str):
+async def view_external_papers(token: str, db: Session = Depends(get_db)):
     """
     View papers using external access token.
     Returns read-only paper information and analysis results.
@@ -345,23 +376,30 @@ async def view_external_papers(token: str):
     # Record access
     await external_access_manager.record_access(token)
     
-    # Import RESULTS_STORE dynamically from main to avoid circular import
-    from main import RESULTS_STORE
-    
     paper_ids = token_data.get("paper_ids", [])
     results = {}
     
     # Identify target papers based on token permissions
     if "all" in paper_ids:
-        target_papers = list(RESULTS_STORE.keys())
+        if db:
+            db_reports = db.query(AnalysisReport).all()
+        else:
+            db_reports = []
     else:
-        target_papers = [pid for pid in paper_ids if pid in RESULTS_STORE]
-        
-    for pid in target_papers:
-        store_entry = RESULTS_STORE[pid]
+        if db:
+            db_reports = db.query(AnalysisReport).filter(AnalysisReport.paper_id.in_(paper_ids)).all()
+        else:
+            db_reports = []
+            
+    for db_report in db_reports:
+        pid = db_report.paper_id
+        store_entry = db_report.data
+        if not store_entry:
+            continue
+            
         results[pid] = {
             "paper_id": pid,
-            "timestamp": store_entry.get("timestamp", datetime.utcnow().isoformat()),
+            "timestamp": db_report.timestamp.isoformat() if db_report.timestamp else datetime.utcnow().isoformat(),
             "overall_status": store_entry["overall_status"],
             "findings": store_entry["criteria"],
             "blooms_distribution": store_entry["blooms"],

@@ -6,10 +6,12 @@ import AnalysisDashboard from './components/AnalysisDashboard'
 import Login from './components/Login'
 import AdminPanel from './components/AdminPanel'
 import ExternalViewer from './components/ExternalViewer'
+import HistoryPanel from './components/HistoryPanel'
 import { useAuth } from './context/AuthContext'
 
 function App() {
-    const { loading, user } = useAuth()
+    const { loading, user, hasPermission } = useAuth()
+    const [currentPage, setCurrentPage] = useState('dashboard') // dashboard | history
     const [step, setStep] = useState('upload') // upload, analyzing, results
     const [files, setFiles] = useState({
         questionPaper: null,
@@ -21,6 +23,14 @@ function App() {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [error, setError] = useState(null)
     const [showAdmin, setShowAdmin] = useState(false)
+
+    const handleNavigate = (page) => {
+        if (page === 'dashboard') {
+            setCurrentPage('dashboard')
+        } else if (page === 'history') {
+            setCurrentPage('history')
+        }
+    }
 
     const handleFileSelect = (type, file) => {
         setFiles(prev => ({ ...prev, [type]: file }))
@@ -116,16 +126,29 @@ function App() {
     const firstName = user.full_name?.split(' ')[0] || user.username
     const uploadCount = [files.questionPaper, files.syllabus, files.previousPaper].filter(Boolean).length
     const isReady = files.questionPaper && files.syllabus
+    const canUpload = hasPermission('upload_paper')
+    const canAnalyze = hasPermission('analyze_paper')
 
     return (
         <div className="app">
             <Header
                 onAdminClick={() => setShowAdmin(true)}
+                onNavigate={handleNavigate}
+                currentPage={currentPage}
             />
 
             {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
             <main className="main-content">
+                {/* History page */}
+                {currentPage === 'history' && (
+                    <div className="fade-up">
+                        <HistoryPanel />
+                    </div>
+                )}
+
+                {/* Dashboard page */}
+                {currentPage === 'dashboard' && (<>
                 {step === 'upload' && (
                     <div className="fade-up">
                         {/* Welcome header */}
@@ -134,98 +157,119 @@ function App() {
                                 Welcome back, <span className="gradient-text">{firstName}</span>
                             </h1>
                             <p className="text-muted" style={{ marginTop: '0.5rem', fontSize: '1.05rem', maxWidth: '520px' }}>
-                                Start a new question paper analysis by uploading your documents and selecting an exam pattern.
+                                {canUpload 
+                                    ? "Start a new question paper analysis by uploading your documents and selecting an exam pattern."
+                                    : "You have read-only access to view and audit question papers."}
                             </p>
                         </header>
 
-                        {/* Status bar */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '1rem',
-                            marginBottom: '1.5rem',
-                            flexWrap: 'wrap'
-                        }}>
-                            <div className="status-chip" style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                padding: '0.5rem 1rem', borderRadius: '100px',
-                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
-                                fontSize: '0.8rem', color: 'var(--text-muted)'
-                            }}>
-                                <span style={{ color: uploadCount > 0 ? 'var(--success)' : 'var(--text-dim)' }}>●</span>
-                                {uploadCount}/3 documents uploaded
-                            </div>
-                            <div className="status-chip" style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                padding: '0.5rem 1rem', borderRadius: '100px',
-                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
-                                fontSize: '0.8rem', color: 'var(--text-muted)'
-                            }}>
-                                <span style={{ color: pattern ? 'var(--success)' : 'var(--text-dim)' }}>●</span>
-                                {pattern ? pattern.name : 'No pattern selected'}
-                            </div>
-                        </div>
-
-                        {/* Main 2-column grid */}
-                        <div className="grid grid-2 mb-4">
-                            <div className="card">
-                                <div className="card-header">
-                                    <div className="card-icon-wrapper">📄</div>
-                                    <div>
-                                        <h2 className="card-title">Upload Documents</h2>
-                                        <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.15rem' }}>PDF or DOCX files accepted</p>
+                        {canUpload ? (
+                            <>
+                                {/* Status bar */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    marginBottom: '1.5rem',
+                                    flexWrap: 'wrap'
+                                }}>
+                                    <div className="status-chip" style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                        padding: '0.5rem 1rem', borderRadius: '100px',
+                                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                                        fontSize: '0.8rem', color: 'var(--text-muted)'
+                                    }}>
+                                        <span style={{ color: uploadCount > 0 ? 'var(--success)' : 'var(--text-dim)' }}>●</span>
+                                        {uploadCount}/3 documents uploaded
+                                    </div>
+                                    <div className="status-chip" style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                        padding: '0.5rem 1rem', borderRadius: '100px',
+                                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                                        fontSize: '0.8rem', color: 'var(--text-muted)'
+                                    }}>
+                                        <span style={{ color: pattern ? 'var(--success)' : 'var(--text-dim)' }}>●</span>
+                                        {pattern ? pattern.name : 'No pattern selected'}
                                     </div>
                                 </div>
-                                <FileUpload
-                                    files={files}
-                                    onFileSelect={handleFileSelect}
-                                />
-                            </div>
 
-                            <div className="card">
-                                <div className="card-header">
-                                    <div className="card-icon-wrapper">⚙️</div>
-                                    <div>
-                                        <h2 className="card-title">Exam Pattern</h2>
-                                        <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.15rem' }}>Configure mark distribution</p>
+                                {/* Main 2-column grid */}
+                                <div className="grid grid-2 mb-4">
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <div className="card-icon-wrapper">📄</div>
+                                            <div>
+                                                <h2 className="card-title">Upload Documents</h2>
+                                                <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.15rem' }}>PDF or DOCX files accepted</p>
+                                            </div>
+                                        </div>
+                                        <FileUpload
+                                            files={files}
+                                            onFileSelect={handleFileSelect}
+                                        />
+                                    </div>
+
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <div className="card-icon-wrapper">⚙️</div>
+                                            <div>
+                                                <h2 className="card-title">Exam Pattern</h2>
+                                                <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.15rem' }}>Configure mark distribution</p>
+                                            </div>
+                                        </div>
+                                        <PatternConfig
+                                            selectedPattern={pattern}
+                                            onPatternSelect={handlePatternSelect}
+                                        />
                                     </div>
                                 </div>
-                                <PatternConfig
-                                    selectedPattern={pattern}
-                                    onPatternSelect={handlePatternSelect}
-                                />
-                            </div>
-                        </div>
 
-                        {error && (
-                            <div style={{
-                                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                padding: '1rem 1.25rem', borderRadius: '14px', marginBottom: '1.5rem',
-                                background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.15)',
-                                color: 'var(--danger)', fontWeight: 600, fontSize: '0.9rem'
-                            }}>
-                                <span>⚠️</span> {error}
+                                {error && (
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                        padding: '1rem 1.25rem', borderRadius: '14px', marginBottom: '1.5rem',
+                                        background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.15)',
+                                        color: 'var(--danger)', fontWeight: 600, fontSize: '0.9rem'
+                                    }}>
+                                        <span>⚠️</span> {error}
+                                    </div>
+                                )}
+
+                                {/* CTA */}
+                                <div className="text-center" style={{ marginTop: '2rem' }}>
+                                    {canAnalyze ? (
+                                        <button
+                                            className="btn btn-primary btn-lg"
+                                            onClick={handleAnalyze}
+                                            disabled={!isReady}
+                                            style={{
+                                                background: isReady ? 'var(--grad-main)' : undefined,
+                                                minWidth: '280px'
+                                            }}
+                                        >
+                                            {isReady ? '🔬' : '🔒'} {isReady ? 'Analyze Question Paper' : 'Upload required documents'}
+                                        </button>
+                                    ) : (
+                                        <button className="btn btn-primary btn-lg" disabled style={{ minWidth: '280px' }}>
+                                            🔒 Analysis Permission Required
+                                        </button>
+                                    )}
+                                    
+                                    {!isReady && canAnalyze && (
+                                        <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
+                                            Upload Question Paper and Syllabus to begin
+                                        </p>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="card text-center" style={{ padding: '4rem 2rem' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📜</div>
+                                <h2 style={{ marginBottom: '0.5rem' }}>View History</h2>
+                                <p className="text-muted" style={{ maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+                                    Your role ({user.role.toUpperCase()}) does not have permission to upload or analyze new papers. Please use the History tab to view previously analyzed papers.
+                                </p>
                             </div>
                         )}
-
-                        {/* CTA */}
-                        <div className="text-center" style={{ marginTop: '2rem' }}>
-                            <button
-                                className="btn btn-primary btn-lg"
-                                onClick={handleAnalyze}
-                                disabled={!isReady}
-                                style={{
-                                    background: isReady ? 'var(--grad-main)' : undefined,
-                                    minWidth: '280px'
-                                }}
-                            >
-                                {isReady ? '🔬' : '🔒'} {isReady ? 'Analyze Question Paper' : 'Upload required documents'}
-                            </button>
-                            {!isReady && (
-                                <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
-                                    Upload Question Paper and Syllabus to begin
-                                </p>
-                            )}
-                        </div>
                     </div>
                 )}
 
@@ -264,6 +308,7 @@ function App() {
                         />
                     </div>
                 )}
+                </>)}
             </main>
         </div>
     )

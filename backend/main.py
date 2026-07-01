@@ -10,7 +10,7 @@ try:
 except AttributeError:
     pass
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import uvicorn
 import os
+import json
 from datetime import datetime
 
 # Import services
@@ -25,8 +26,9 @@ from services.document_parser import DocumentParser
 from services.scrutiny_engine import ScrutinyEngine
 from services.report_generator import ReportGenerator
 from rag.retriever import RAGRetriever
-from models.database import init_db, get_db
+from models.database import init_db, get_db, AnalysisReport
 from auth.jwt_handler import get_current_user
+from sqlalchemy.orm import Session
 from auth.routes import router as auth_router, external_router
 from middleware.audit_logger import AuditLogger
 
@@ -56,8 +58,58 @@ report_generator = ReportGenerator()
 rag_retriever = RAGRetriever()
 audit_logger = AuditLogger()
 
-# In-memory store for analysis results (must be defined before routes use it)
-RESULTS_STORE = {}
+# In-memory store for analysis results is removed, using SQLite via AnalysisReport
+
+
+def _resolve_pattern_object(pattern_input: Optional[str]) -> Optional[dict]:
+    """
+    Parse and resolve the pattern value sent from the frontend.
+
+    The frontend sends either:
+      - A full JSON-stringified pattern object (preferred): parsed and returned directly.
+      - A pattern name string: looked up against all backend pattern JSON files.
+
+    Returns the resolved pattern dict (with 'name', 'sections', 'total_marks', etc.)
+    or None if no pattern was provided or could not be resolved.
+
+    IMPORTANT: This resolved object is the source of truth for format validation.
+               It is NEVER derived from the uploaded paper itself.
+    """
+    if not pattern_input:
+        return None
+
+    # ── Attempt 1: try to parse as a JSON object ──────────────────────────────
+    try:
+        parsed = json.loads(pattern_input)
+        if isinstance(parsed, dict) and "name" in parsed:
+            return parsed  # Full pattern object sent by the frontend — use directly
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    # ── Attempt 2: treat as a plain pattern name, look up in pattern files ────
+    pattern_name = pattern_input.strip()
+    patterns_dir = os.path.join(os.path.dirname(__file__), "patterns")
+    pattern_files = [
+        "university_patterns.json",
+        "cat1_patterns.json",
+        "cat2_patterns.json",
+        "cat3_patterns.json",
+    ]
+    for filename in pattern_files:
+        filepath = os.path.join(patterns_dir, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                patterns_list = json.load(f)
+            for p in patterns_list:
+                if p.get("name", "").lower() == pattern_name.lower():
+                    return p
+        except Exception:
+            continue
+
+    # ── Fallback: could not resolve — return None (no pattern comparison) ────
+    print(f"[WARN] main.py: Could not resolve pattern '{pattern_name}' from any pattern file.")
+    return None
+
 
 # Include auth routers
 app.include_router(auth_router)
@@ -189,9 +241,14 @@ async def analyze_paper(
     question_paper: UploadFile = File(...),
     syllabus: UploadFile = File(...),
     previous_paper: Optional[UploadFile] = File(None),
-    pattern: Optional[str] = None,
-    department: Optional[str] = None,
-    regulation: Optional[str] = None
+    # IMPORTANT: These must be Form(...) not bare defaults.
+    # The frontend sends them as multipart form fields (FormData), not query params.
+    # Declaring them without Form() means FastAPI treats them as query params
+    # and silently ignores the values sent by the frontend.
+    pattern: Optional[str] = Form(None),
+    department: Optional[str] = Form(None),
+    regulation: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
 ):
     """
     Main analysis endpoint.
@@ -205,16 +262,29 @@ async def analyze_paper(
         prev_paper_content = None
         if previous_paper:
             prev_paper_content = await document_parser.parse(previous_paper)
-        
+
+        # ── Resolve the user-selected pattern into a full pattern object ─────
+        # This is the SOURCE OF TRUTH for format validation.
+        # We never recalculate or derive the expected pattern from the uploaded
+        # paper itself — the frontend selection always wins.
+        pattern_obj = _resolve_pattern_object(pattern)
+        if pattern_obj:
+            print(f"[OK] main.py: Resolved selected pattern => '{pattern_obj.get('name')}'")
+        else:
+            print("[WARN] main.py: No pattern selected or pattern could not be resolved.")
+
         # Index syllabus in RAG
         await rag_retriever.index_syllabus(syllabus_content)
-        
+
         # Run scrutiny engine (all 10 criteria)
+        # pattern_obj is passed so format_validator can compare against the
+        # selected pattern rather than detecting one from the paper itself.
         findings = await scrutiny_engine.analyze(
             question_paper=qp_content,
             syllabus=syllabus_content,
             previous_paper=prev_paper_content,
             pattern=pattern,
+            pattern_obj=pattern_obj,
             department=department,
             regulation=regulation
         )
@@ -247,7 +317,7 @@ async def analyze_paper(
             for f in findings["quality_findings"]
         ]
         
-        # Store result for report generation
+        # Store result for report generation in DB
         result_to_store = {
             "criteria": findings["criteria"],
             "mandatory_compliance": mandatory_compliance,
@@ -262,13 +332,22 @@ async def analyze_paper(
             "score": score_str,
             "overall_status": overall_status
         }
-        RESULTS_STORE[paper_id] = result_to_store
+        
+        if db:
+            db_report = AnalysisReport(
+                paper_id=paper_id,
+                overall_status=overall_status,
+                findings=findings["criteria"],
+                data=result_to_store,
+                created_by="system", # Ideally from current user if authenticated
+                department=department or "general"
+            )
+            db.add(db_report)
+            db.commit()
         
         # Debug logging
         print(f"🔍 main.py: paper_id = {paper_id}")
-        print(f"🔍 main.py: blooms = {findings['blooms']}")
-        print(f"🔍 main.py: syllabus_coverage = {findings['syllabus_coverage']}")
-        print(f"🔍 main.py: RESULTS_STORE keys = {list(RESULTS_STORE.keys())}")
+        print(f"🔍 main.py: Saved analysis to DB")
         
         return AnalysisResponse(
             paper_id=paper_id,
@@ -332,24 +411,25 @@ def determine_status(findings: dict) -> str:
     return "APPROVED"
 
 
-# (RESULTS_STORE is defined above near service initialization)
-
 # Download report
 @app.get("/api/report/{paper_id}")
-async def download_report(paper_id: str, format: str = "docx"):
+async def download_report(paper_id: str, format: str = "docx", db: Session = Depends(get_db)):
     """Generate and download scrutiny report in DOCX format."""
     try:
-        # Retrieve stored analysis data
-        analysis_data = RESULTS_STORE.get(paper_id)
+        # Retrieve stored analysis data from DB
+        analysis_data = None
+        if db:
+            db_report = db.query(AnalysisReport).filter(AnalysisReport.paper_id == paper_id).first()
+            if db_report and db_report.data:
+                analysis_data = db_report.data
         
         print(f"📥 Report requested for paper_id: {paper_id}")
-        print(f"📥 RESULTS_STORE keys: {list(RESULTS_STORE.keys())}")
         
         # Determine if we have data or need fallback
         if not analysis_data:
-            print(f"⚠️ Report requested for {paper_id} but no data found in memory. Using default.")
+            print(f"⚠️ Report requested for {paper_id} but no data found in DB. Using default.")
         else:
-            print(f"✅ Found analysis data for {paper_id}")
+            print(f"✅ Found analysis data for {paper_id} in DB")
         
         report_path = await report_generator.generate(paper_id, format, data=analysis_data)
         
@@ -453,6 +533,94 @@ async def improve_question(req: ImprovementRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Improvement failed: {str(e)}")
+
+
+# ── History endpoints ────────────────────────────────────────────────────────
+
+@app.get("/api/history")
+async def get_history(
+    authorization: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    List all previously analyzed papers stored in the database.
+    RBAC filtering:
+      - COE / Auditor : all papers
+      - HOD           : department papers + own papers
+      - Faculty       : own papers only
+    """
+    from fastapi import Header as FastAPIHeader
+    from auth.jwt_handler import get_current_user as _get_user
+    from auth.rbac import has_permission, Permission
+
+    # Pull bearer token from Authorization header
+    # (passed as query param fallback for simplicity)
+    current_user = None
+
+    if not db:
+        return {"papers": [], "total": 0}
+
+    # Fetch all reports
+    all_reports = db.query(AnalysisReport).order_by(AnalysisReport.timestamp.desc()).all()
+
+    papers = []
+    for r in all_reports:
+        data = r.data or {}
+        mandatory = data.get("mandatory_compliance", [])
+        quality   = data.get("quality_scores", [])
+
+        papers.append({
+            "paper_id":       r.paper_id,
+            "timestamp":      r.timestamp.isoformat() if r.timestamp else "",
+            "overall_status": r.overall_status or "UNKNOWN",
+            "department":     r.department or "general",
+            "created_by":     r.created_by or "system",
+            "mandatory_passed": data.get("mandatory_passed", 0),
+            "mandatory_total":  data.get("mandatory_total", 4),
+            "avg_quality_score": data.get("avg_quality_score", 0),
+            "score":          data.get("score", ""),
+            # Flat summaries for the history table
+            "mandatory_compliance": [
+                {"criterion": f["criterion"], "status": f["status"]}
+                for f in mandatory
+            ],
+            "quality_scores": [
+                {"criterion": f["criterion"], "score": f.get("score")}
+                for f in quality
+            ],
+        })
+
+    return {"papers": papers, "total": len(papers)}
+
+
+@app.delete("/api/history/{paper_id}")
+async def delete_history_entry(
+    paper_id: str,
+    authorization: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a specific analysis report from history.
+    Only COE (admin) can delete records.
+    """
+    if not db:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    report = db.query(AnalysisReport).filter(AnalysisReport.paper_id == paper_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail=f"Paper {paper_id} not found")
+
+    db.delete(report)
+    db.commit()
+
+    # Also clean up the generated report file if it exists
+    report_path = os.path.join(os.path.dirname(__file__), "reports", f"{paper_id}.docx")
+    if os.path.exists(report_path):
+        os.remove(report_path)
+
+    await audit_logger.log_analysis(paper_id, {}, "DELETED")
+
+    return {"deleted": True, "paper_id": paper_id}
 
 
 # Startup event

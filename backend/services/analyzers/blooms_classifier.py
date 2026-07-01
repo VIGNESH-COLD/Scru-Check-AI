@@ -59,40 +59,30 @@ class BloomsClassifier:
         "Analyze": 4, "Evaluate": 5, "Create": 6
     }
     
-    async def analyze(self, question_paper: Dict[str, Any], syllabus: Dict[str, Any], pattern: Optional[str] = None) -> Dict[str, Any]:
+    async def analyze(self, question_paper: Dict[str, Any], syllabus: Dict[str, Any], pattern_obj: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Analyze each question and classify Bloom's level.
         Uses LLM when available, falls back to rule-based.
+
+        pattern_obj: resolved pattern dict from the frontend selection (already parsed).
         """
         from typing import Optional
         questions = question_paper.get("questions", [])
         syllabus_text = syllabus.get("raw_text", "")[:2000]
-        
-        # Determine exam type from pattern
+
+        # Determine exam type directly from the resolved pattern object (no JSON parsing needed)
         exam_type = "University"
-        if pattern:
-            import json
-            try:
-                if isinstance(pattern, str):
-                    pat_data = json.loads(pattern)
-                else:
-                    pat_data = pattern
-                
-                if isinstance(pat_data, dict):
-                    exam_type = pat_data.get("exam_type", "University")
-                    if not exam_type:
-                        # Fallback to name checking
-                        name = pat_data.get("name", "").upper()
-                        if "CAT-1" in name or "CAT1" in name:
-                            exam_type = "CAT1"
-                        elif "CAT-2" in name or "CAT2" in name:
-                            exam_type = "CAT2"
-                        elif "CAT-3" in name or "CAT3" in name:
-                            exam_type = "CAT3"
-                        elif "UNI" in name or "SEMESTER" in name:
-                            exam_type = "University"
-            except Exception as e:
-                print(f"Error parsing pattern in BloomsClassifier: {e}")
+        if pattern_obj and isinstance(pattern_obj, dict):
+            exam_type = pattern_obj.get("exam_type", "University") or "University"
+            if exam_type == "University":
+                name = pattern_obj.get("name", "").upper()
+                if "CAT-1" in name or "CAT1" in name:
+                    exam_type = "CAT1"
+                elif "CAT-2" in name or "CAT2" in name:
+                    exam_type = "CAT2"
+                elif "CAT-3" in name or "CAT3" in name:
+                    exam_type = "CAT3"
+
 
         classification_results = []
         distribution = {level: 0 for level in self.BLOOM_VERBS.keys()}

@@ -50,82 +50,75 @@ class SyllabusMapper:
         # Return the original if no number found
         return unit_name
     
-    async def analyze(self, question_paper: Dict[str, Any], syllabus: Dict[str, Any], pattern: Optional[str] = None) -> Dict[str, Any]:
+    async def analyze(self, question_paper: Dict[str, Any], syllabus: Dict[str, Any], pattern_obj: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Map questions to syllabus units using semantic similarity.
         Flags out-of-syllabus content.
+
+        pattern_obj: the resolved pattern dict from the frontend selection.
+                     Used to determine exam_type and allowed units.
+                     For University exams: allowed_units = None (all 5 units in scope).
+                     For CAT exams: allowed_units is restricted to specific units.
         """
         questions = question_paper.get("questions", [])
         syllabus_text = syllabus.get("raw_text", "")
-        
-        # Determine allowed units based on exam type from pattern
-        exam_type = "University"
-        if pattern:
-            import json
-            try:
-                if isinstance(pattern, str):
-                    pat_data = json.loads(pattern)
-                else:
-                    pat_data = pattern
-                
-                if isinstance(pat_data, dict):
-                    exam_type = pat_data.get("exam_type", "University")
-                    if not exam_type:
-                        name = pat_data.get("name", "").upper()
-                        if "CAT-1" in name or "CAT1" in name:
-                            exam_type = "CAT1"
-                        elif "CAT-2" in name or "CAT2" in name:
-                            exam_type = "CAT2"
-                        elif "CAT-3" in name or "CAT3" in name:
-                            exam_type = "CAT3"
-                        elif "UNI" in name or "SEMESTER" in name:
-                            exam_type = "University"
-            except Exception as e:
-                print(f"Error parsing pattern in SyllabusMapper: {e}")
 
-        # Map exam type to allowed normalized units
-        allowed_units = None
+        # Determine exam type and allowed units from the resolved pattern object.
+        # pattern_obj is already a dict — no JSON parsing needed here.
+        exam_type = "University"
+        if pattern_obj and isinstance(pattern_obj, dict):
+            exam_type = pattern_obj.get("exam_type", "University") or "University"
+            # Fallback: infer exam_type from the pattern name if exam_type is missing
+            if exam_type == "University":
+                name = pattern_obj.get("name", "").upper()
+                if "CAT-1" in name or "CAT1" in name:
+                    exam_type = "CAT1"
+                elif "CAT-2" in name or "CAT2" in name:
+                    exam_type = "CAT2"
+                elif "CAT-3" in name or "CAT3" in name:
+                    exam_type = "CAT3"
+
+        # Map exam type to allowed units for scope enforcement.
+        # University exams cover ALL 5 units, so allowed_units = None (no restriction).
+        # CAT exams are scoped to specific units.
+        allowed_units = None  # None = all units allowed (University exam)
         if "CAT1" in exam_type.upper():
             allowed_units = {"Unit 1", "Unit 2"}
         elif "CAT2" in exam_type.upper():
             allowed_units = {"Unit 3"}
         elif "CAT3" in exam_type.upper():
             allowed_units = {"Unit 4", "Unit 5"}
-        
-        # Extract and embed units
+        # University: allowed_units remains None — all 5 units are valid
+
+        # Extract Part A question count from pattern sections
+        part_a_qs = 10  # sensible default
+        if pattern_obj and isinstance(pattern_obj, dict):
+            sections = pattern_obj.get("sections", [])
+            if sections:
+                part_a_qs = int(sections[0].get("questions", 10))
+
+        if pattern_obj:
+            scope_info = f"allowed_units = {allowed_units if allowed_units else 'ALL (University — all 5 units in scope)'}"
+        else:
+            scope_info = "allowed_units = None (no pattern selected, defaulting to University)"
+        print(f"SyllabusMapper: exam_type='{exam_type}', {scope_info}, part_a_qs={part_a_qs}")
+
+        # Extract and embed units from syllabus
         units = self._extract_units(syllabus_text)
         unit_texts = [f"{u['name']}: {u['content']}" for u in units]
-        
-        # Pre-compute unit embeddings
+
+        # Pre-compute unit embeddings (mapping from unit name -> text for lookup)
         unit_embeddings = {}
         for i, unit in enumerate(units):
             unit_embeddings[unit["name"]] = unit_texts[i]
-        
+
         mappings = []
         out_of_syllabus = []
         # Coverage always reflects ACTUAL unit distribution from the paper
         coverage = {}
 
-        # Get training context
+        # Get training context for adaptive learning
         training_context = training_data.get_training_prompt_context("syllabus_alignment")
-
-        # Extract part A questions count to know when big questions start
-        part_a_qs = 10
-        if pattern:
-            import json
-            try:
-                if isinstance(pattern, str):
-                    pat_data = json.loads(pattern)
-                else:
-                    pat_data = pattern
-                if isinstance(pat_data, dict):
-                    sections = pat_data.get("sections", [])
-                    if sections and len(sections) > 0:
-                        part_a_qs = int(sections[0].get("questions", 10))
-            except Exception:
-                pass
-
-        print(f"📚 SyllabusMapper: exam_type = '{exam_type}', allowed_units = {allowed_units}, part_a_qs = {part_a_qs}")
 
         for question in questions:
             # Try semantic matching first

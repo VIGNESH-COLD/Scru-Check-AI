@@ -77,7 +77,7 @@ export function AuthProvider({ children }) {
     };
 
     const isAuthenticated = !!user;
-    const isAdmin = user?.role === 'coe' || user?.role === 'hod';
+    const isAdmin = user?.role === 'coe' || user?.role === 'hod' || user?.role === 'auditor';
 
     return (
         <AuthContext.Provider value={{

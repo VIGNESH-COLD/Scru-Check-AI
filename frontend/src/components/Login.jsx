@@ -29,7 +29,9 @@ export default function Login({ onClose }) {
   const demoAccounts = [
     { username: 'admin', password: 'admin123', role: 'COE' },
     { username: 'hod_demo', password: 'hod123', role: 'HOD' },
-    { username: 'faculty_demo', password: 'faculty123', role: 'Faculty' }
+    { username: 'faculty_demo', password: 'faculty123', role: 'Faculty' },
+    { username: 'auditor_demo', password: 'auditor123', role: 'Auditor' },
+    { username: 'external_demo', password: 'external123', role: 'External' }
   ];
 
   const fillDemo = (demo) => {

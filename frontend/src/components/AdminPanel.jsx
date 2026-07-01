@@ -9,13 +9,81 @@ const API_BASE = '';
 
 export default function AdminPanel({ onClose }) {
     const { user, token, hasPermission } = useAuth();
-    const [activeTab, setActiveTab] = useState('users');
+    
+    const canManageUsers = hasPermission('manage_users') || hasPermission('manage_dept_users');
+    const canManageLinks = hasPermission('generate_external_link');
+
+    const [activeTab, setActiveTab] = useState(canManageUsers ? 'users' : (canManageLinks ? 'external' : 'rbac'));
     const [users, setUsers] = useState([]);
     const [externalTokens, setExternalTokens] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newLinkPapers, setNewLinkPapers] = useState('');
     const [newLinkHours, setNewLinkHours] = useState(48);
     const [generatedLink, setGeneratedLink] = useState(null);
+
+    // RBAC permission matrix data
+    const ROLES = [
+        { key: 'faculty',  label: 'Faculty',  color: '#10b981', count: 5,  desc: 'Upload & analyze own papers' },
+        { key: 'hod',      label: 'HOD',      color: '#8b5cf6', count: 11, desc: 'Department-level oversight' },
+        { key: 'coe',      label: 'COE',      color: '#3b82f6', count: 16, desc: 'Full system access' },
+        { key: 'auditor',  label: 'Auditor',  color: '#f59e0b', count: 5,  desc: 'Read-only compliance view' },
+        { key: 'external', label: 'External', color: '#64748b', count: 2,  desc: 'Token-scoped read only' },
+    ]
+
+    const PERMISSION_GROUPS = [
+        {
+            category: '📄 Paper Operations',
+            permissions: [
+                { key: 'upload_paper',     label: 'Upload Paper',        roles: ['faculty','hod','coe'] },
+                { key: 'view_own_papers',  label: 'View Own Papers',     roles: ['faculty','hod','coe'] },
+                { key: 'view_dept_papers', label: 'View Dept Papers',    roles: ['hod','coe'] },
+                { key: 'view_all_papers',  label: 'View All Papers',     roles: ['coe','auditor'] },
+                { key: 'analyze_paper',    label: 'Analyze Paper',       roles: ['faculty','hod','coe'] },
+            ]
+        },
+        {
+            category: '✍️ Override',
+            permissions: [
+                { key: 'override_findings', label: 'Override Findings', roles: ['faculty','hod','coe'] },
+            ]
+        },
+        {
+            category: '📥 Reports',
+            permissions: [
+                { key: 'download_report',    label: 'Download Report',     roles: ['faculty','hod','coe','auditor','external'] },
+                { key: 'export_all_reports', label: 'Export All Reports',  roles: ['coe','auditor'] },
+            ]
+        },
+        {
+            category: '📜 Policies',
+            permissions: [
+                { key: 'view_policies',      label: 'View Policies',       roles: ['hod','coe','auditor'] },
+                { key: 'edit_dept_policies', label: 'Edit Dept Policies',  roles: ['hod','coe'] },
+                { key: 'edit_all_policies',  label: 'Edit All Policies',   roles: ['coe'] },
+            ]
+        },
+        {
+            category: '👥 User Management',
+            permissions: [
+                { key: 'manage_dept_users', label: 'Manage Dept Users', roles: ['hod','coe'] },
+                { key: 'manage_users',      label: 'Manage All Users',  roles: ['coe'] },
+            ]
+        },
+        {
+            category: '🔗 External Access',
+            permissions: [
+                { key: 'generate_external_link', label: 'Generate External Link', roles: ['hod','coe'] },
+                { key: 'view_external',          label: 'View External (token)',  roles: ['external'] },
+            ]
+        },
+        {
+            category: '🕵️ Audit Logs',
+            permissions: [
+                { key: 'view_audit_log', label: 'View Dept Audit Log', roles: ['hod','coe'] },
+                { key: 'view_all_audit', label: 'View All Audit Log',  roles: ['coe','auditor'] },
+            ]
+        },
+    ]
 
     useEffect(() => {
         if (activeTab === 'users') fetchUsers();
@@ -108,17 +176,18 @@ export default function AdminPanel({ onClose }) {
                 </div>
 
                 <div className="admin-tabs">
-                    <button
-                        className={`tab ${activeTab === 'users' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('users')}
-                    >
-                        👥 Users
-                    </button>
-                    <button
-                        className={`tab ${activeTab === 'external' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('external')}
-                    >
-                        🔗 External Links
+                    {canManageUsers && (
+                        <button className={`tab ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
+                            👥 Users
+                        </button>
+                    )}
+                    {canManageLinks && (
+                        <button className={`tab ${activeTab === 'external' ? 'active' : ''}`} onClick={() => setActiveTab('external')}>
+                            🔗 External Links
+                        </button>
+                    )}
+                    <button className={`tab ${activeTab === 'rbac' ? 'active' : ''}`} onClick={() => setActiveTab('rbac')}>
+                        🔐 Roles & Permissions
                     </button>
                 </div>
 
@@ -145,6 +214,95 @@ export default function AdminPanel({ onClose }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'rbac' && (
+                        <div>
+                            {/* Role summary cards */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.75rem' }}>
+                                {ROLES.map(role => (
+                                    <div key={role.key} style={{
+                                        background: `${role.color}12`,
+                                        border: `1px solid ${role.color}44`,
+                                        borderRadius: '12px',
+                                        padding: '0.85rem 1rem',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: role.color, lineHeight: 1 }}>{role.count}</div>
+                                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: role.color, marginTop: '2px' }}>{role.label}</div>
+                                        <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '4px', lineHeight: 1.3 }}>{role.desc}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Permission matrix */}
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#64748b', fontWeight: 600, borderBottom: '1px solid rgba(100,116,139,0.2)', minWidth: '180px' }}>Permission</th>
+                                            {ROLES.map(role => (
+                                                <th key={role.key} style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: role.color, fontWeight: 700, borderBottom: '1px solid rgba(100,116,139,0.2)', minWidth: '80px' }}>
+                                                    {role.label}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {PERMISSION_GROUPS.map((group, gi) => (
+                                            <>
+                                                <tr key={`group-${gi}`}>
+                                                    <td colSpan={6} style={{
+                                                        padding: '0.65rem 0.75rem 0.3rem',
+                                                        color: '#94a3b8',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.68rem',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.06em',
+                                                        background: 'rgba(255,255,255,0.02)',
+                                                        borderTop: gi > 0 ? '1px solid rgba(100,116,139,0.15)' : 'none'
+                                                    }}>
+                                                        {group.category}
+                                                    </td>
+                                                </tr>
+                                                {group.permissions.map((perm, pi) => (
+                                                    <tr key={perm.key} style={{ background: pi % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                                                        <td style={{ padding: '0.5rem 0.75rem', color: '#cbd5e1' }}>{perm.label}</td>
+                                                        {ROLES.map(role => {
+                                                            const has = perm.roles.includes(role.key)
+                                                            return (
+                                                                <td key={role.key} style={{ textAlign: 'center', padding: '0.5rem' }}>
+                                                                    {has ? (
+                                                                        <span style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            width: '22px', height: '22px',
+                                                                            borderRadius: '50%',
+                                                                            background: `${role.color}22`,
+                                                                            border: `1px solid ${role.color}66`,
+                                                                            fontSize: '0.65rem',
+                                                                            color: role.color,
+                                                                            fontWeight: 800
+                                                                        }}>✓</span>
+                                                                    ) : (
+                                                                        <span style={{ color: '#1e293b', fontSize: '0.75rem' }}>—</span>
+                                                                    )}
+                                                                </td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                ))}
+                                            </>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p style={{ marginTop: '1rem', fontSize: '0.7rem', color: '#475569', textAlign: 'center' }}>
+                                17 permissions across 5 roles · Defined in <code style={{ color: '#64748b' }}>backend/auth/rbac.py</code>
+                            </p>
                         </div>
                     )}
 
@@ -181,13 +339,73 @@ export default function AdminPanel({ onClose }) {
                                     </button>
                                 </div>
 
-                                {generatedLink && (
-                                    <div className="generated-link">
-                                        <p>✅ Link Generated!</p>
-                                        <code>{window.location.origin}/external/{generatedLink.token}</code>
-                                        <small>Expires: {new Date(generatedLink.expires_at).toLocaleString()}</small>
-                                    </div>
-                                )}
+                                {generatedLink && (() => {
+                                    // Build the full public URL on the frontend side using
+                                    // window.location.origin so it reflects whatever host
+                                    // the app is actually served from (localhost, IP, ngrok, domain).
+                                    const token = generatedLink.token
+                                    const fullUrl = `${window.location.origin}/external/${token}`
+                                    return (
+                                        <div className="generated-link">
+                                            <p style={{ color: '#34d399', fontWeight: 700, marginBottom: '0.6rem' }}>
+                                                ✓ Shareable link generated!
+                                            </p>
+
+                                            {/* URL display + copy */}
+                                            <div style={{
+                                                display: 'flex', gap: '0.5rem', alignItems: 'center',
+                                                background: 'rgba(0,0,0,0.25)', borderRadius: 10,
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                padding: '0.6rem 0.85rem', marginBottom: '0.6rem',
+                                            }}>
+                                                <code style={{
+                                                    flex: 1, fontSize: '0.75rem', color: '#94a3b8',
+                                                    wordBreak: 'break-all', fontFamily: 'monospace',
+                                                }}>{fullUrl}</code>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(fullUrl)
+                                                            .then(() => alert('Link copied to clipboard!'))
+                                                            .catch(() => {
+                                                                // Fallback for non-secure contexts
+                                                                const el = document.createElement('textarea')
+                                                                el.value = fullUrl
+                                                                document.body.appendChild(el)
+                                                                el.select()
+                                                                document.execCommand('copy')
+                                                                document.body.removeChild(el)
+                                                                alert('Link copied!')
+                                                            })
+                                                    }}
+                                                    style={{
+                                                        flexShrink: 0, padding: '0.35rem 0.75rem',
+                                                        borderRadius: 8, fontSize: '0.72rem', fontWeight: 700,
+                                                        background: 'rgba(129,140,248,0.15)',
+                                                        border: '1px solid rgba(129,140,248,0.3)',
+                                                        color: '#818cf8', cursor: 'pointer',
+                                                        fontFamily: 'inherit', whiteSpace: 'nowrap',
+                                                    }}
+                                                >⎘ Copy</button>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.72rem', color: '#64748b' }}>
+                                                <span>⏱ Expires: {new Date(generatedLink.expires_at).toLocaleString()}</span>
+                                                <span>📄 Papers: {generatedLink.paper_count}</span>
+                                            </div>
+
+                                            <p style={{
+                                                marginTop: '0.6rem', fontSize: '0.7rem',
+                                                color: '#475569', lineHeight: 1.5,
+                                            }}>
+                                                ⚠ This link uses <strong style={{ color: '#64748b' }}>{window.location.host}</strong>.
+                                                {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                                                    ? ' You are running locally — external users cannot access this link. Use ngrok or deploy to make it publicly accessible.'
+                                                    : ' This link is publicly accessible from any network.'
+                                                }
+                                            </p>
+                                        </div>
+                                    )
+                                })()}
                             </div>
 
                             <div className="tokens-section">
