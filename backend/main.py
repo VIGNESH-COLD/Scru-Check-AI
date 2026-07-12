@@ -10,15 +10,16 @@ try:
 except AttributeError:
     pass
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import uvicorn
 import os
 import json
+import uuid
 from datetime import datetime
 
 # Import services
@@ -27,7 +28,8 @@ from services.scrutiny_engine import ScrutinyEngine
 from services.report_generator import ReportGenerator
 from rag.retriever import RAGRetriever
 from models.database import init_db, get_db, AnalysisReport
-from auth.jwt_handler import get_current_user
+from auth.jwt_handler import get_current_user, verify_token
+from auth.rbac import has_permission, Permission
 from sqlalchemy.orm import Session
 from auth.routes import router as auth_router, external_router
 from middleware.audit_logger import AuditLogger
@@ -42,10 +44,12 @@ app = FastAPI(
 # Mount static files for samples
 app.mount("/samples", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "samples")), name="samples")
 
-# CORS middleware
+# CORS middleware — origins loaded from environment (fallback to localhost)
+_cors_origins_raw = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+_cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +61,21 @@ scrutiny_engine = ScrutinyEngine()
 report_generator = ReportGenerator()
 rag_retriever = RAGRetriever()
 audit_logger = AuditLogger()
+
+# ── Auth dependency ───────────────────────────────────────────────────────────
+
+async def require_auth(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
+    """
+    FastAPI dependency that enforces JWT authentication on any endpoint.
+    Raises 401 if the token is missing, expired, or invalid.
+    """
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    token = authorization.replace("Bearer ", "").strip()
+    current_user = await get_current_user(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return current_user
 
 # In-memory store for analysis results is removed, using SQLite via AnalysisReport
 
@@ -236,6 +255,31 @@ async def get_patterns():
     }
 
 
+# Maximum allowed upload size (20 MB)
+_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+# Allowed MIME magic bytes
+_PDF_MAGIC = b"%PDF"
+_DOCX_MAGIC = b"PK"  # DOCX is a ZIP archive
+
+
+def _validate_upload(content: bytes, filename: str) -> None:
+    """Validate uploaded file size and type."""
+    if len(content) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File '{filename}' exceeds the 20 MB size limit ({len(content) // (1024*1024)} MB uploaded)."
+        )
+    lower = filename.lower()
+    if lower.endswith(".pdf"):
+        if not content.startswith(_PDF_MAGIC):
+            raise HTTPException(status_code=400, detail=f"File '{filename}' is not a valid PDF.")
+    elif lower.endswith(".docx"):
+        if not content.startswith(_DOCX_MAGIC):
+            raise HTTPException(status_code=400, detail=f"File '{filename}' is not a valid DOCX file.")
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {filename}. Only PDF and DOCX are accepted.")
+
+
 @app.post("/api/analyze", response_model=AnalysisResponse)
 async def analyze_paper(
     question_paper: UploadFile = File(...),
@@ -248,7 +292,8 @@ async def analyze_paper(
     pattern: Optional[str] = Form(None),
     department: Optional[str] = Form(None),
     regulation: Optional[str] = Form(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ):
     """
     Main analysis endpoint.
@@ -256,11 +301,23 @@ async def analyze_paper(
     Returns comprehensive scrutiny report.
     """
     try:
+        # Read and validate file contents before parsing
+        qp_bytes = await question_paper.read()
+        _validate_upload(qp_bytes, question_paper.filename)
+        await question_paper.seek(0)  # Reset so parser can read again
+
+        syl_bytes = await syllabus.read()
+        _validate_upload(syl_bytes, syllabus.filename)
+        await syllabus.seek(0)
+
         # Parse documents
         qp_content = await document_parser.parse(question_paper)
         syllabus_content = await document_parser.parse(syllabus)
         prev_paper_content = None
         if previous_paper:
+            prev_bytes = await previous_paper.read()
+            _validate_upload(prev_bytes, previous_paper.filename)
+            await previous_paper.seek(0)
             prev_paper_content = await document_parser.parse(previous_paper)
 
         # ── Resolve the user-selected pattern into a full pattern object ─────
@@ -292,8 +349,8 @@ async def analyze_paper(
         # Determine overall status based on new two-section rules
         overall_status = determine_status(findings)
         
-        # Generate paper ID
-        paper_id = f"PAPER_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Generate paper ID — use UUID to avoid time-based collisions
+        paper_id = f"PAPER_{uuid.uuid4().hex[:12].upper()}"
         
         # Log to audit
         await audit_logger.log_analysis(paper_id, findings, overall_status)
@@ -339,8 +396,8 @@ async def analyze_paper(
                 overall_status=overall_status,
                 findings=findings["criteria"],
                 data=result_to_store,
-                created_by="system", # Ideally from current user if authenticated
-                department=department or "general"
+                created_by=current_user["user"],
+                department=department or current_user.get("department", "general")
             )
             db.add(db_report)
             db.commit()
@@ -381,10 +438,18 @@ def determine_status(findings: dict) -> str:
     4. Avg quality score < 60      → CONDITIONAL
     5. Otherwise                   → APPROVED
     """
-    # Rule 1: Any mandatory criterion FAIL → REJECTED
+    # Rule 1a: Any mandatory criterion FAIL → REJECTED
     for finding in findings.get("mandatory_findings", []):
-        if finding["status"] != "PASS":
+        if finding["status"] == "FAIL":
             return "REJECTED"
+
+    # Rule 1b: Any mandatory criterion WARNING/UNCERTAIN → CONDITIONAL
+    mandatory_has_warning = any(
+        f["status"] not in ("PASS", "FAIL")
+        for f in findings.get("mandatory_findings", [])
+    )
+    if mandatory_has_warning:
+        return "CONDITIONAL"
 
     # Extract syllabus score (may be None if not evaluated)
     syllabus_score = None
@@ -413,7 +478,12 @@ def determine_status(findings: dict) -> str:
 
 # Download report
 @app.get("/api/report/{paper_id}")
-async def download_report(paper_id: str, format: str = "docx", db: Session = Depends(get_db)):
+async def download_report(
+    paper_id: str,
+    format: str = "docx",
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_auth)
+):
     """Generate and download scrutiny report in DOCX format."""
     try:
         # Retrieve stored analysis data from DB
@@ -457,12 +527,13 @@ async def override_finding(
     justification: str,
     action: str,  # ACCEPT, REJECT, FALSE_POSITIVE
     question_text: str = "",
-    criterion: str = ""
+    criterion: str = "",
+    current_user: Dict[str, Any] = Depends(require_auth)
 ):
-    """
-    Human-in-the-loop override for findings.
-    Logs to audit trail AND training data for model improvement.
-    """
+    # Only HOD and COE can override findings
+    if not has_permission(current_user.get("role", ""), Permission.OVERRIDE_FINDINGS):
+        raise HTTPException(status_code=403, detail="Only HOD/COE can override findings")
+
     # Import training data manager
     from rag.training_data import training_data
     
@@ -495,7 +566,10 @@ async def override_finding(
 
 # Adaptive Question Improvement endpoint
 @app.post("/api/improve")
-async def improve_question(req: ImprovementRequest):
+async def improve_question(
+    req: ImprovementRequest,
+    current_user: Dict[str, Any] = Depends(require_auth)
+):
     """
     Suggest how to improve a flagged question using Mistral AI.
     Supports: Bloom level uplift, syllabus realignment, grammar fix.
@@ -539,32 +613,39 @@ async def improve_question(req: ImprovementRequest):
 
 @app.get("/api/history")
 async def get_history(
-    authorization: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ):
     """
-    List all previously analyzed papers stored in the database.
-    RBAC filtering:
+    List previously analyzed papers with RBAC filtering:
       - COE / Auditor : all papers
       - HOD           : department papers + own papers
       - Faculty       : own papers only
     """
-    from fastapi import Header as FastAPIHeader
-    from auth.jwt_handler import get_current_user as _get_user
-    from auth.rbac import has_permission, Permission
-
-    # Pull bearer token from Authorization header
-    # (passed as query param fallback for simplicity)
-    current_user = None
-
     if not db:
         return {"papers": [], "total": 0}
 
-    # Fetch all reports
+    user_role = current_user.get("role", "faculty")
+    user_name = current_user.get("user", "")
+    user_dept = current_user.get("department", "general")
+
+    # Fetch all reports then apply RBAC filter
     all_reports = db.query(AnalysisReport).order_by(AnalysisReport.timestamp.desc()).all()
 
     papers = []
     for r in all_reports:
+        # RBAC filtering
+        if has_permission(user_role, Permission.VIEW_ALL_PAPERS):
+            pass  # COE / Auditor sees everything
+        elif has_permission(user_role, Permission.VIEW_DEPT_PAPERS):
+            # HOD sees own department + own papers
+            if r.department != user_dept and r.created_by != user_name:
+                continue
+        else:
+            # Faculty sees only own papers
+            if r.created_by != user_name:
+                continue
+
         data = r.data or {}
         mandatory = data.get("mandatory_compliance", [])
         quality   = data.get("quality_scores", [])
@@ -574,12 +655,11 @@ async def get_history(
             "timestamp":      r.timestamp.isoformat() if r.timestamp else "",
             "overall_status": r.overall_status or "UNKNOWN",
             "department":     r.department or "general",
-            "created_by":     r.created_by or "system",
+            "created_by":     r.created_by or "unknown",
             "mandatory_passed": data.get("mandatory_passed", 0),
             "mandatory_total":  data.get("mandatory_total", 4),
             "avg_quality_score": data.get("avg_quality_score", 0),
             "score":          data.get("score", ""),
-            # Flat summaries for the history table
             "mandatory_compliance": [
                 {"criterion": f["criterion"], "status": f["status"]}
                 for f in mandatory
@@ -596,13 +676,15 @@ async def get_history(
 @app.delete("/api/history/{paper_id}")
 async def delete_history_entry(
     paper_id: str,
-    authorization: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ):
     """
     Delete a specific analysis report from history.
     Only COE (admin) can delete records.
     """
+    if not has_permission(current_user.get("role", ""), Permission.MANAGE_USERS):
+        raise HTTPException(status_code=403, detail="Only COE can delete analysis records")
     if not db:
         raise HTTPException(status_code=503, detail="Database unavailable")
 

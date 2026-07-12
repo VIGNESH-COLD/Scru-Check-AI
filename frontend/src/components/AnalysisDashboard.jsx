@@ -88,9 +88,13 @@ function ImprovementPanel({ finding, isReadOnly }) {
                 current_bloom_level: currentBloom,
                 target_bloom_level: targetBloom,
             }
+            const token = localStorage.getItem('token')
             const res = await fetch(`${API_BASE}/api/improve`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify(body),
             })
             if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -185,7 +189,10 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
 
     const downloadReport = async () => {
         try {
-            const response = await fetch(`/api/report/${result.paper_id}`)
+            const token = localStorage.getItem('token')
+            const response = await fetch(`/api/report/${result.paper_id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            })
             if (response.ok) {
                 const blob = await response.blob()
                 const url = window.URL.createObjectURL(blob)
@@ -193,6 +200,7 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                 a.href = url
                 a.download = `ScruCheck_Report_${result.paper_id}.docx`
                 a.click()
+                window.URL.revokeObjectURL(url)
             }
         } catch {
             alert('Report download available when backend is running')

@@ -48,7 +48,6 @@ export default function Login({ onClose }) {
         <div className="shape shape-3"></div>
         <div className="brand-content">
           <img src="/logo.png" alt="ScruCheck AI" className="brand-logo-image" />
-          <p>Intelligent, automated question paper scrutiny to maintain the highest academic standards.</p>
         </div>
         <div className="brand-pattern"></div>
       </div>
@@ -69,7 +68,7 @@ export default function Login({ onClose }) {
           <form onSubmit={handleSubmit} className="login-form">
             {error && (
               <div className="login-error">
-                ⚠️ {error}
+                 {error}
               </div>
             )}
 
@@ -447,6 +446,53 @@ export default function Login({ onClose }) {
           }
           .mobile-brand {
             display: flex;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .login-container {
+            flex-direction: column;
+          }
+          .login-form-section {
+            padding: 1.5rem 1rem;
+            min-height: 100vh;
+          }
+          .login-form-wrapper {
+            max-width: 100%;
+            padding: 1.75rem 1.25rem;
+            border-radius: 18px;
+          }
+          .login-header {
+            margin-bottom: 1.75rem;
+          }
+          .demo-accounts {
+            gap: 0.5rem;
+          }
+          .demo-btn {
+            padding: 0.5rem 0.85rem;
+            font-size: 0.8rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .login-form-section {
+            padding: 1rem 0.75rem;
+          }
+          .login-form-wrapper {
+            padding: 1.25rem 1rem;
+            border-radius: 14px;
+            box-shadow: none;
+            border: none;
+          }
+          .login-header h1 {
+            font-size: 1.5rem !important;
+          }
+          .demo-accounts {
+            flex-direction: column;
+          }
+          .demo-btn {
+            width: 100%;
+            text-align: center;
           }
         }
       `}</style>

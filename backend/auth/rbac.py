@@ -57,7 +57,6 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
         Permission.UPLOAD_PAPER,
         Permission.VIEW_OWN_PAPERS,
         Permission.ANALYZE_PAPER,
-        Permission.OVERRIDE_FINDINGS,
         Permission.DOWNLOAD_REPORT,
     ],
     

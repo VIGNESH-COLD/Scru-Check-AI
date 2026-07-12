@@ -90,11 +90,10 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
 
 
 async def get_current_user(token: str = None) -> Optional[Dict[str, Any]]:
-    """Get current user from token (for dependency injection)."""
+    """Get current user from token. Returns None if no token or invalid token."""
     if not token:
-        # Allow unauthenticated access for development
-        return {"user": "anonymous", "role": "faculty", "department": "general", "authenticated": False}
-    
+        return None
+
     payload = verify_token(token)
     if payload:
         return {

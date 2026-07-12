@@ -97,7 +97,7 @@ export default function HistoryPanel({ onViewResult }) {
         setLoading(true)
         setError(null)
         try {
-            const token = localStorage.getItem('auth_token')
+            const token = localStorage.getItem('token')
             const res = await fetch('/api/history', {
                 headers: token ? { Authorization: `Bearer ${token}` } : {}
             })
@@ -116,7 +116,7 @@ export default function HistoryPanel({ onViewResult }) {
     const handleDelete = async (paper_id) => {
         setDeletingId(paper_id)
         try {
-            const token = localStorage.getItem('auth_token')
+            const token = localStorage.getItem('token')
             const res = await fetch(`/api/history/${paper_id}`, {
                 method: 'DELETE',
                 headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -131,15 +131,25 @@ export default function HistoryPanel({ onViewResult }) {
         }
     }
 
-    const handleDownload = (paper_id) => {
-        const token = localStorage.getItem('auth_token')
-        const url = `/api/report/${paper_id}`
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `ScruCheck_Report_${paper_id}.docx`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+    const handleDownload = async (paper_id) => {
+        try {
+            const token = localStorage.getItem('token')
+            const response = await fetch(`/api/report/${paper_id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            })
+            if (!response.ok) throw new Error(`HTTP ${response.status}`)
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `ScruCheck_Report_${paper_id}.docx`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            window.URL.revokeObjectURL(url)
+        } catch (e) {
+            setError('Download failed: ' + e.message)
+        }
     }
 
     // Filter + sort

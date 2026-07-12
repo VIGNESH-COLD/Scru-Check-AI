@@ -137,6 +137,9 @@ class DocumentParser:
         # This handles cases where PDF extraction merges everything onto one line
         text = re.sub(r'(\s+|^)(\d+\([a-zA-Z]\)\.?|\d+\.|\d+\)|Q\d+\.)\s+', r'\n\2 ', text)
         
+        # Force section headers and metadata to start on new lines so they can be filtered
+        text = re.sub(r'(?i)(\s+)(PART\s+[A-Z]|SECTION\s+[A-Z]|Time:|Maximum|Max Marks|Note:|Answer\b)', r'\n\2', text)
+        
         questions = []
         lines = text.split('\n')
         
@@ -178,6 +181,11 @@ class DocumentParser:
             
             # Continue building current question if it spans multiple lines
             if not matched and current_question:
+                # Filter out section headers and common metadata
+                if re.match(r'^\s*[\(\[]?(PART|SECTION)\s+[A-Z]\b', line, re.IGNORECASE):
+                    continue
+                if re.match(r'^\s*[\(\[]?(Time:|Maximum|Max Marks|Note:|Answer\b)', line, re.IGNORECASE):
+                    continue
                 current_question["text"] += " " + line
                 current_question["full_text"] += " " + line
         

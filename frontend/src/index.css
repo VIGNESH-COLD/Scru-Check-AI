@@ -732,15 +732,305 @@ tbody tr:last-child td {
 .recharts-text { fill: var(--text-dim) !important; }
 .recharts-cartesian-axis-tick-value { fill: var(--text-dim) !important; font-size: 0.75rem; }
 
-/* ─── Responsive ─── */
-@media (max-width: 768px) {
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE SYSTEM  —  ScruCheck AI
+   Breakpoints:
+     xl   ≥ 1280px  (large desktop)
+     lg   ≥ 1024px  (desktop / laptop)
+     md   ≥ 768px   (tablet landscape)
+     sm   ≥ 480px   (mobile large / tablet portrait)
+     xs   < 480px   (mobile small)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Large desktop (1024–1280px) ─────────────────────────────── */
+@media (max-width: 1280px) {
   .main-content {
-    padding: var(--spacing-lg) 1rem;
+    max-width: 100%;
+    padding: var(--spacing-lg) 1.5rem;
   }
+  .header-content {
+    max-width: 100%;
+  }
+}
+
+/* ── Tablet landscape (768–1024px) ───────────────────────────── */
+@media (max-width: 1024px) {
+  /* Grids collapse to single column */
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-title {
+    font-size: 2.25rem;
+  }
+
+  /* Score ring goes vertical */
+  .score-ring-container {
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ── Tablet portrait / mobile large (480–768px) ──────────────── */
+@media (max-width: 768px) {
+
+  /* --- Header --- */
   .header {
     padding: 0 1rem;
+    height: auto;
+    min-height: 60px;
   }
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+  }
+
+  /* Hide subtitle on mobile */
+  .logo-subtitle {
+    display: none;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 0.75rem;
+  }
+
+  /* Nav pills wrap and shrink */
+  .hdr-nav-group {
+    gap: 0.15rem !important;
+    padding: 0.2rem !important;
+    border-radius: 10px !important;
+  }
+
+  .hdr-nav-btn {
+    padding: 0.45rem 0.65rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* User pill shrinks */
+  .hdr-user-info {
+    display: none !important;
+  }
+
+  .hdr-user-pill {
+    padding: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    gap: 0.35rem !important;
+  }
+
+  /* --- Main content --- */
+  .main-content {
+    padding: var(--spacing-md) 1rem;
+  }
+
+  /* --- Typography --- */
   .welcome-title {
+    font-size: 1.85rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  /* --- Cards --- */
+  .card {
+    padding: 1.1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .card-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  /* --- Buttons --- */
+  .btn-lg {
+    padding: 0.9rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* --- Tables become scrollable --- */
+  .table-container,
+  table {
+    min-width: 520px;
+  }
+
+  /* --- History panel controls stack vertically --- */
+  /* (handled via flexWrap: 'wrap' inline but reinforce here) */
+
+  /* --- Score ring stacks --- */
+  .score-ring-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  /* --- Upload zones --- */
+  .upload-icon {
     font-size: 2rem;
+  }
+
+  /* --- Grids --- */
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* --- Admin modal --- */
+  .admin-modal {
+    width: 98% !important;
+    max-width: 98% !important;
+    max-height: 92vh !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* ── Mobile small (< 480px) ──────────────────────────────────── */
+@media (max-width: 480px) {
+
+  /* Root font scale down slightly */
+  html {
+    font-size: 14px;
+  }
+
+  /* --- Header --- */
+  .header {
+    padding: 0 0.75rem;
+  }
+
+  /* Stack header logo + nav vertically only if needed */
+  .hdr-nav-btn span.nav-icon {
+    display: none; /* icon-only on very small screens */
+  }
+
+  /* --- Main content --- */
+  .main-content {
+    padding: 1rem 0.75rem;
+  }
+
+  /* --- Typography --- */
+  .welcome-title {
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* --- Cards --- */
+  .card {
+    padding: 0.9rem;
+    border-radius: 14px;
+  }
+
+  /* --- Buttons --- */
+  .btn-lg {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* --- Status chips wrap --- */
+  .status-chip {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  /* --- Analyzing screen --- */
+  .analyzing-pulse {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+  }
+
+  /* --- Option cards --- */
+  .option-card {
+    padding: 0.8rem 1rem;
+  }
+
+  /* --- Tabs --- */
+  .tabs-container {
+    gap: 0.2rem;
+    padding: 0.25rem;
+  }
+
+  .tab-item {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  /* --- History table — show minimal columns on tiny screens --- */
+  .history-col-quality,
+  .history-col-mandatory {
+    display: none;
+  }
+
+  /* --- Admin panel --- */
+  .admin-modal {
+    max-height: 96vh !important;
+    border-radius: 12px !important;
+  }
+
+  /* Ensure tables scroll horizontally, never overflow body */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Touch device refinements ─────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase tap target size */
+  .btn,
+  .hdr-nav-btn,
+  .option-card,
+  .tab-item {
+    min-height: 44px;
+  }
+
+  /* Remove hover transforms that feel wrong on touch */
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-premium);
+  }
+
+  .btn-primary:hover {
+    transform: none;
+  }
+}
+
+/* ── Print styles ─────────────────────────────────────────────── */
+@media print {
+  .header,
+  .hdr-nav-group,
+  .hdr-user-section,
+  .btn,
+  .admin-overlay {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .card {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    page-break-inside: avoid;
   }
 }

@@ -62,8 +62,10 @@ function App() {
                 formData.append('pattern', JSON.stringify(pattern))
             }
 
+            const token = localStorage.getItem('token')
             const response = await fetch('/api/analyze', {
                 method: 'POST',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
                 body: formData
             })
 

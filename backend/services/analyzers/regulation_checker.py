@@ -21,7 +21,7 @@ class RegulationChecker:
         found_info = {}
         
         # Extract regulation year
-        reg_match = re.search(r'R[-\s]?(\d{4})|Regulation\s*[-:]?\s*(\d{4})', raw_text, re.IGNORECASE)
+        reg_match = re.search(r'R[-\s]?(\d{4})|Regulations?\s*[-:]?\s*(\d{4})', raw_text, re.IGNORECASE)
         if reg_match:
             found_info["regulation"] = reg_match.group(1) or reg_match.group(2)
         else:

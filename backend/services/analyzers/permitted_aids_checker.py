@@ -45,12 +45,12 @@ class PermittedAidsChecker:
         
         # Check for conflicting statements
         if "not allowed" in raw_text and "allowed" in raw_text:
-            issues.append("⚠️ Conflicting aid permission statements detected")
+            issues.append("Conflicting aid permission statements detected")
         
         # Standard check - if calculator is needed
         if re.search(r'\b(calculate|compute|solve numerically)\b', raw_text, re.IGNORECASE):
             if "calculator" not in found_aids and not has_permission_statement:
-                issues.append("⚠️ Numerical questions but no calculator permission statement")
+                issues.append(" Numerical questions but no calculator permission statement")
         
         status = "PASS" if not issues else "FAIL"
         remarks = "; ".join(issues) if issues else "Permitted aids are correctly specified."

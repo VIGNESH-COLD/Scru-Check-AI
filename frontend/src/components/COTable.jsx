@@ -47,7 +47,7 @@ export default function COTable({ data }) {
                     {data.map((row, index) => (
                         <tr key={index}>
                             <td style={{ fontWeight: 600 }}>{row.question_no}</td>
-                            <td style={{ maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <td>
                                 {row.question_text}
                             </td>
                             <td>
