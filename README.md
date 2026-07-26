@@ -9,7 +9,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 ScruCheck AI automatically analyzes question papers against **10 scrutiny criteria**, providing AI-powered recommendations for format compliance, syllabus alignment, Bloom's taxonomy distribution, and more.
 
@@ -17,17 +17,17 @@ ScruCheck AI automatically analyzes question papers against **10 scrutiny criter
 
 | Feature | Description |
 |---------|-------------|
-| 📊 **10 Criteria Analysis** | Format, regulation, syllabus, Bloom's, marks, grammar, diagrams, aids, repetition, figures |
-| 🤖 **RAG System** | Mistral AI + MiniLM embeddings for intelligent syllabus matching |
-| 📈 **Visualizations** | Bloom's taxonomy chart + Syllabus coverage heatmap |
-| 📄 **Report Generation** | Downloadable DOCX with embedded charts |
-| 🔐 **RBAC** | 5 roles (Faculty, HOD, COE, Auditor, External) with 17 permissions |
-| 🔗 **External Portal** | Time-limited access tokens for external examiners |
-| 📝 **Audit Logging** | Complete activity trail for compliance |
+| **10 Criteria Analysis** | Format, regulation, syllabus, Bloom's, marks, grammar, diagrams, aids, repetition, figures |
+| **RAG System** | Mistral AI + MiniLM embeddings for intelligent syllabus matching |
+| **Visualizations** | Bloom's taxonomy chart + Syllabus coverage heatmap |
+| **Report Generation** | Downloadable DOCX with embedded charts |
+| **RBAC** | 5 roles (Faculty, HOD, COE, Auditor, External) with 17 permissions |
+| **External Portal** | Time-limited access tokens for external examiners |
+| **Audit Logging** | Complete activity trail for compliance |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.10+
@@ -61,7 +61,7 @@ Open **http://localhost:5173** in your browser.
 
 ---
 
-## 👥 Demo Accounts
+## Demo Accounts
 
 | Username | Password | Role | Permissions |
 |----------|----------|------|-------------|
@@ -73,46 +73,63 @@ Open **http://localhost:5173** in your browser.
 
 ---
 
-## 📋 10 Scrutiny Criteria
+## 10 Scrutiny Criteria
 
-| # | Criterion | Level | Blocks Approval? |
-|---|-----------|-------|------------------|
-| 1 | Format Compliance | **STRICT** | ✅ Yes |
-| 2 | Regulation Check | **STRICT** | ✅ Yes |
-| 3 | Syllabus Alignment | ENFORCED | ⚠️ Conditional |
-| 4 | Bloom's Taxonomy | ADVISORY | ❌ No |
-| 5 | Mark Distribution | **STRICT** | ✅ Yes |
-| 6 | Grammar & Clarity | ADVISORY | ❌ No |
-| 7 | Diagrams/Symbols | ADVISORY | ❌ No |
-| 8 | Permitted Aids | ENFORCED | ⚠️ Conditional |
-| 9 | Repetition Check | ADVISORY | ❌ No |
-| 10 | Figure Naming | ADVISORY | ❌ No |
+The system evaluates uploaded papers against the following academic and compliance checks:
+
+| # | Criterion | Level | Blocks Approval? | Description |
+|---|-----------|-------|------------------|-------------|
+| 1 | Format Compliance | **STRICT** | Yes | Verifies that the paper follows the required structure and layout. |
+| 2 | Regulation Check | **STRICT** | Yes | Ensures the paper meets institutional or university regulations. |
+| 3 | Syllabus Alignment | ENFORCED | Conditional | Checks whether the questions align with the prescribed syllabus. |
+| 4 | Bloom's Taxonomy | ADVISORY | No | Reviews whether the question distribution reflects appropriate cognitive levels. |
+| 5 | Mark Distribution | **STRICT** | Yes | Confirms marks are allocated consistently and correctly. |
+| 6 | Grammar & Clarity | ADVISORY | No | Identifies unclear wording or grammatical issues. |
+| 7 | Diagrams/Symbols | ADVISORY | No | Checks whether diagrams and symbols are used appropriately. |
+| 8 | Permitted Aids | ENFORCED | Conditional | Verifies that only allowed aids or resources are referenced. |
+| 9 | Repetition Check | ADVISORY | No | Detects repeated questions or duplicated concepts. |
+| 10 | Figure Naming | ADVISORY | No | Ensures figures, labels, and naming conventions are consistent. |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-scrucheck-ai/
+Scru-Check-AI/
 ├── backend/
-│   ├── main.py              # FastAPI entry point
-│   ├── auth/                # JWT + RBAC + External tokens
-│   ├── services/            # Scrutiny engine + analyzers
-│   ├── rag/                 # Embeddings + LLM client
-│   ├── models/              # SQLAlchemy models
-│   └── middleware/          # Audit logging
-│
-└── frontend/
-    ├── src/
-    │   ├── App.jsx
-    │   ├── context/         # AuthContext
-    │   └── components/      # Login, AdminPanel, etc.
-    └── vite.config.js
-```
+│   ├── auth/
+│   ├── middleware/
+│   ├── models/
+│   ├── patterns/
+│   ├── rag/
+│   ├── services/
+│   │   └── analyzers/
+│   ├── samples/
+│   ├── temp_images/
+│   ├── training_data/
+│   ├── audit_log.jsonl
+│   ├── main.py
+│   ├── requirements.txt
+│   └── test_format_validation.py
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── tests/
+│   └── java/
+├── EVALUATION_CRITERIA.md
+└── README.md
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Analysis
 - `POST /api/analyze` - Analyze question paper
@@ -131,7 +148,7 @@ scrucheck-ai/
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 Create `.env` in `backend/`:
 
@@ -140,23 +157,3 @@ MISTRAL_API_KEY=your_mistral_api_key
 SECRET_KEY=your_jwt_secret_key
 DATABASE_URL=sqlite:///./scrucheck.db
 ```
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details.
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
-5. Open Pull Request
-
----
-
-**Built with ❤️ for Higher Education Quality Assurance**
