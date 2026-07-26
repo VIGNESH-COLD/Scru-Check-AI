@@ -5,7 +5,8 @@ starlette>=0.50.0
 python-multipart>=0.0.21
 
 # ── Document Parsing ──────────────────────────────────────────
-PyPDF2>=3.0.1
+pymupdf4llm>=0.0.14
+pymupdf>=1.24.0
 python-docx>=1.2.0
 
 # ── Data Validation ───────────────────────────────────────────

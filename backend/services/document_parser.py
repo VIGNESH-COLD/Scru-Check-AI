@@ -6,7 +6,8 @@ Extracts text from PDF and DOCX files
 import io
 from typing import List, Dict, Any
 from fastapi import UploadFile
-import PyPDF2
+import fitz
+import pymupdf4llm
 from docx import Document
 
 
@@ -47,44 +48,29 @@ class DocumentParser:
         }
     
     def _parse_pdf(self, content: bytes):
-        """Extract text and detect embedded images from PDF file."""
-        pdf_file = io.BytesIO(content)
-        reader = PyPDF2.PdfReader(pdf_file)
+        """Extract text and detect embedded images from PDF file using pymupdf4llm."""
+        doc = fitz.open(stream=content, filetype="pdf")
         
-        text_parts = []
+        # Use pymupdf4llm to extract text as Markdown
+        text = pymupdf4llm.to_markdown(doc)
+        
         image_count = 0
         broken_images = 0
 
-        for page in reader.pages:
-            text_parts.append(page.extract_text() or "")
-            # Detect image XObjects embedded in the page
+        for page in doc:
             try:
-                resources = page.get("/Resources", {})
-                xobjects = resources.get("/XObject", {})
-                if xobjects:
-                    for obj_key in xobjects:
-                        try:
-                            xobj = xobjects[obj_key].get_object()
-                            if xobj.get("/Subtype") == "/Image":
-                                # Validate image can be read (width/height present)
-                                w = xobj.get("/Width", 0)
-                                h = xobj.get("/Height", 0)
-                                if w and h and int(w) > 0 and int(h) > 0:
-                                    image_count += 1
-                                else:
-                                    broken_images += 1
-                        except Exception:
-                            broken_images += 1
+                images = page.get_images(full=True)
+                image_count += len(images)
             except Exception:
-                pass  # page has no resources
+                broken_images += 1
         
         image_info = {
             "has_images": image_count > 0 or broken_images > 0,
             "image_count": image_count,
             "broken_images": broken_images,
-            "source": "pdf_xobject"
+            "source": "pymupdf"
         }
-        return "\n".join(text_parts), image_info
+        return text, image_info
     
     def _parse_docx(self, content: bytes):
         """Extract text and detect embedded images from DOCX file."""

@@ -131,7 +131,7 @@ function ImprovementPanel({ finding, isReadOnly }) {
                     </div>
                     <div style={{ marginBottom: '0.75rem' }}>
                         <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, color: 'var(--success)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Recommended Fix</span>
-                        <p style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 600, lineHeight: 1.5 }}>{result.improved_question}</p>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 600, lineHeight: 1.5 }}>{result.improved_question}</p>
                     </div>
                     {result.reasoning && (
                         <div style={{ marginBottom: '0.75rem' }}>
@@ -344,7 +344,7 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                                     <span style={{ fontSize: '1.2rem' }}>{finding.status === 'PASS' ? '✅' : '❌'}</span>
-                                    <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
                                         {MANDATORY_LABELS[finding.criterion] || finding.criterion}
                                     </span>
                                 </div>
@@ -392,6 +392,71 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                                     </p>
                                 </div>
                             )}
+
+                            {/* Detailed evidence breakdown for Mark & Time Distribution */}
+                            {finding.criterion === 'mark_distribution' && finding.evidence && (finding.status === 'FAIL' || finding.status === 'WARNING') && (
+                                <div style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                                    {/* Arithmetic Errors */}
+                                    {finding.evidence.sections?.filter(s => !s.valid_arithmetic).map((sec, idx) => (
+                                        <div key={idx} style={{
+                                            background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)',
+                                            borderRadius: '8px', padding: '0.65rem 0.85rem', fontSize: '0.82rem'
+                                        }}>
+                                            <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: '0.2rem' }}>⚠️ Arithmetic Error</div>
+                                            <div>{sec.questions} × {sec.marks_each} = {sec.total}</div>
+                                            <div style={{ color: 'var(--text-dim)' }}>Expected: {sec.expected_total}</div>
+                                        </div>
+                                    ))}
+
+                                    {/* Failed Questions / Complexity Mismatch */}
+                                    {finding.evidence.failed_questions?.map((fq, idx) => (
+                                        <div key={idx} style={{
+                                            background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)',
+                                            borderRadius: '8px', padding: '0.65rem 0.85rem', fontSize: '0.82rem'
+                                        }}>
+                                            <div style={{ fontWeight: 700, color: 'var(--danger)', marginBottom: '0.25rem' }}>
+                                                ⚠️ Question {fq.question_number} Complexity Mismatch
+                                            </div>
+                                            {fq.question_text && (
+                                                <div style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+                                                    "{fq.question_text}"
+                                                </div>
+                                            )}
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-dim)', marginBottom: '0.35rem', fontSize: '0.78rem' }}>
+                                                <span><strong>Assigned:</strong> {fq.assigned_marks} Marks</span>
+                                                <span><strong>Suggested:</strong> <span style={{ color: 'var(--success)' }}>{fq.suggested_marks} Marks</span></span>
+                                                <span><strong>Estimated Time:</strong> {fq.estimated_time} minutes</span>
+                                                <span><strong>Allocated Time:</strong> {fq.allocated_time} minutes</span>
+                                            </div>
+                                            <div style={{ color: 'var(--text-secondary)' }}>
+                                                <strong>Reason:</strong> {fq.reason}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Overall Time Distribution */}
+                                    {(finding.evidence.overall_time_status === 'FAIL' || finding.evidence.overall_time_status === 'WARNING') && (
+                                        <div style={{
+                                            background: finding.evidence.overall_time_status === 'FAIL' ? 'rgba(248,113,113,0.08)' : 'rgba(251,191,36,0.08)',
+                                            border: `1px solid ${finding.evidence.overall_time_status === 'FAIL' ? 'rgba(248,113,113,0.2)' : 'rgba(251,191,36,0.2)'}`,
+                                            borderRadius: '8px', padding: '0.65rem 0.85rem', fontSize: '0.82rem'
+                                        }}>
+                                            <div style={{ fontWeight: 700, color: finding.evidence.overall_time_status === 'FAIL' ? 'var(--danger)' : 'var(--warning)', marginBottom: '0.25rem' }}>
+                                                {finding.evidence.overall_time_status === 'FAIL' ? '❌' : '⚠️'} Overall Time Distribution
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
+                                                <span><strong>Expected Duration:</strong> {finding.evidence.expected_duration_mins || 180} minutes</span>
+                                                <span><strong>Estimated Duration:</strong> {finding.evidence.estimated_time_mins} minutes</span>
+                                            </div>
+                                            {finding.evidence.issues?.filter(i => i.includes('Duration')).map((iss, iidx) => (
+                                                <div key={iidx} style={{ color: 'var(--text-secondary)' }}>
+                                                    <strong>Reason:</strong> {iss.replace(/^[❌⚠️]\s*/, '')}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -426,7 +491,7 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                                 key={index}
                                 className="criteria-item"
                                 style={{
-                                    background: 'rgba(255,255,255,0.02)',
+                                    background: 'var(--glass-bg)',
                                     border: '1px solid var(--border-light)',
                                     borderRadius: '12px',
                                     padding: '1rem 1.15rem'
@@ -438,7 +503,7 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                                             {isNA ? '⚪' : score >= 90 ? '🟢' : score >= 70 ? '🔵' : score >= 50 ? '🟡' : '🔴'}
                                         </span>
                                         <div>
-                                            <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>
+                                            <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
                                                 {QUALITY_LABELS[finding.criterion] || finding.criterion}
                                             </span>
                                             {/* Weight pill */}
@@ -448,8 +513,8 @@ export default function AnalysisDashboard({ result, onReset, isReadOnly = false 
                                                     fontSize: '0.62rem',
                                                     fontWeight: 700,
                                                     color: 'var(--text-dim)',
-                                                    background: 'rgba(255,255,255,0.06)',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    background: 'var(--border-light)',
+                                                    border: '1px solid var(--border-glow)',
                                                     borderRadius: '100px',
                                                     padding: '1px 6px',
                                                     letterSpacing: '0.04em'

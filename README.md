@@ -83,7 +83,7 @@ The system evaluates uploaded papers against the following academic and complian
 | 2 | Regulation Check | **STRICT** | Yes | Ensures the paper meets institutional or university regulations. |
 | 3 | Syllabus Alignment | ENFORCED | Conditional | Checks whether the questions align with the prescribed syllabus. |
 | 4 | Bloom's Taxonomy | ADVISORY | No | Reviews whether the question distribution reflects appropriate cognitive levels. |
-| 5 | Mark Distribution | **STRICT** | Yes | Confirms marks are allocated consistently and correctly. |
+| 5 | Mark & Time Distribution | **STRICT** | Yes | Validates arithmetic totals, checks valid mark allocations, and estimates expected completion time based on question complexity. |
 | 6 | Grammar & Clarity | ADVISORY | No | Identifies unclear wording or grammatical issues. |
 | 7 | Diagrams/Symbols | ADVISORY | No | Checks whether diagrams and symbols are used appropriately. |
 | 8 | Permitted Aids | ENFORCED | Conditional | Verifies that only allowed aids or resources are referenced. |
@@ -109,8 +109,7 @@ Scru-Check-AI/
 │   ├── training_data/
 │   ├── audit_log.jsonl
 │   ├── main.py
-│   ├── requirements.txt
-│   └── test_format_validation.py
+│   └── requirements.txt
 ├── frontend/
 │   ├── public/
 │   ├── src/
@@ -122,8 +121,6 @@ Scru-Check-AI/
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
-├── tests/
-│   └── java/
 ├── EVALUATION_CRITERIA.md
 └── README.md
 

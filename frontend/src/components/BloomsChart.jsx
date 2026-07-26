@@ -9,26 +9,29 @@ const BLOOM_COLORS = {
     'Create': '#8b5cf6'
 }
 
-// Custom tooltip rendered with full visibility on dark backgrounds
+// Custom tooltip — uses CSS variables so it looks correct in both dark and light mode
 function CustomTooltip({ active, payload, total }) {
     if (!active || !payload || !payload.length) return null
     const item = payload[0].payload
     const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0.0'
     return (
         <div style={{
-            background: 'rgba(15, 23, 42, 0.95)',
+            background: 'var(--bg-elevated)',
+            backdropFilter: 'blur(16px)',
             border: `1px solid ${item.color}`,
             borderRadius: '10px',
             padding: '10px 14px',
-            boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px ${item.color}22`,
+            boxShadow: `0 4px 20px rgba(0,0,0,0.2), 0 0 0 1px ${item.color}22`,
             minWidth: '140px'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-                <span style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.85rem' }}>{item.name}</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem' }}>{item.name}</span>
             </div>
-            <div style={{ color: item.color, fontSize: '1.1rem', fontWeight: 800, lineHeight: 1 }}>{item.value} <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>questions</span></div>
-            <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '3px' }}>{pct}% of total</div>
+            <div style={{ color: item.color, fontSize: '1.1rem', fontWeight: 800, lineHeight: 1 }}>
+                {item.value} <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 500 }}>questions</span>
+            </div>
+            <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '3px' }}>{pct}% of total</div>
         </div>
     )
 }
@@ -97,7 +100,7 @@ export default function BloomsChart({ data }) {
                             background: item.color,
                             borderRadius: '2px'
                         }}></div>
-                        <span className="text-secondary">{item.name}</span>
+                        <span className="text-muted">{item.name}</span>
                         <span className="text-muted">({item.value})</span>
                     </div>
                 ))}
@@ -130,7 +133,7 @@ export default function BloomsChart({ data }) {
                             return (
                                 <div key={g.label}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{g.label}</span>
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{g.label}</span>
                                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: barColor }}>
                                             {g.actual}%
                                             <span style={{ color: 'var(--text-dim)', fontWeight: 400, marginLeft: '4px' }}>
@@ -141,7 +144,7 @@ export default function BloomsChart({ data }) {
                                             </span>
                                         </span>
                                     </div>
-                                    <div style={{ height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
+                                    <div style={{ height: '5px', background: 'var(--border-light)', borderRadius: '100px', overflow: 'hidden' }}>
                                         <div style={{ width: `${g.actual}%`, height: '100%', background: barColor, borderRadius: '100px', transition: 'width 0.8s ease' }} />
                                     </div>
                                 </div>

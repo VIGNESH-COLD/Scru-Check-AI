@@ -150,9 +150,9 @@ export default function PatternConfig({ selectedPattern, onPatternSelect }) {
 
             {/* Custom Pattern Builder */}
             {showCustom && (
-                <div className="card fade-up" style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', marginTop: '0.5rem', border: '1px solid var(--primary-glow)' }}>
+                <div className="card fade-up" style={{ background: 'var(--bg-elevated)', padding: '1rem', marginTop: '0.5rem', border: '1px solid var(--primary-glow)' }}>
                     <div className="flex justify-between items-center mb-3">
-                        <h4 style={{ fontSize: '0.9rem', color: '#fff' }}>Custom Pattern Configuration</h4>
+                        <h4 style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>Custom Pattern Configuration</h4>
                         <button className="btn btn-glass" style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }} onClick={addSection}>+ Add</button>
                     </div>
 
@@ -164,14 +164,14 @@ export default function PatternConfig({ selectedPattern, onPatternSelect }) {
                                     value={section.name}
                                     onChange={(e) => updateSection(index, 'name', e.target.value)}
                                     className="btn-glass"
-                                    style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }}
+                                    style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
                                 />
                                 <input
                                     type="number"
                                     value={section.questions}
                                     onChange={(e) => updateSection(index, 'questions', e.target.value)}
                                     className="btn-glass"
-                                    style={{ width: '45px', padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }}
+                                    style={{ width: '45px', padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
                                 />
                                 <span style={{ color: 'var(--text-dim)' }}>×</span>
                                 <input
@@ -179,7 +179,7 @@ export default function PatternConfig({ selectedPattern, onPatternSelect }) {
                                     value={section.marks_per_question}
                                     onChange={(e) => updateSection(index, 'marks_per_question', e.target.value)}
                                     className="btn-glass"
-                                    style={{ width: '45px', padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }}
+                                    style={{ width: '45px', padding: '0.4rem', borderRadius: '6px', fontSize: '0.8rem', border: '1px solid var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
                                 />
                                 {customSections.length > 1 && (
                                     <button onClick={() => removeSection(index)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>×</button>
@@ -190,7 +190,7 @@ export default function PatternConfig({ selectedPattern, onPatternSelect }) {
 
                     <div className="mt-4 flex items-center justify-between">
                         <div className="text-muted" style={{ fontSize: '0.8rem' }}>
-                            Total: <span style={{ color: '#fff', fontWeight: 600 }}>{customSections.reduce((sum, s) => sum + s.questions * s.marks_per_question, 0)} marks</span>
+                            Total: <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{customSections.reduce((sum, s) => sum + s.questions * s.marks_per_question, 0)} marks</span>
                         </div>
                         <button className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }} onClick={applyCustomPattern}>
                             Apply Custom

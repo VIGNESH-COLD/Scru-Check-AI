@@ -3,9 +3,11 @@
  */
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 export default function Header({ onNavigate, currentPage, onLoginClick, onAdminClick }) {
     const { user, isAuthenticated, isAdmin, logout } = useAuth()
+    const { theme, toggleTheme } = useTheme()
 
     const handleNavClick = (page) => {
         if (onNavigate) {
@@ -63,6 +65,20 @@ export default function Header({ onNavigate, currentPage, onLoginClick, onAdminC
                         )}
                     </div>
 
+                    {/* Theme toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="hdr-theme-toggle"
+                        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        aria-label="Toggle theme"
+                    >
+                        <span className="theme-toggle-track">
+                            <span className="theme-toggle-thumb">
+                                {theme === 'dark' ? '🌙' : '☀️'}
+                            </span>
+                        </span>
+                    </button>
+
                     <div className="hdr-user-section">
                         <div className="hdr-user-pill">
                             <div className="hdr-avatar" style={{ background: role.bg, color: role.color }}>
@@ -92,6 +108,98 @@ export default function Header({ onNavigate, currentPage, onLoginClick, onAdminC
                     padding: 0.3rem;
                     border-radius: 14px;
                     border: 1px solid rgba(255, 255, 255, 0.06);
+                }
+
+                [data-theme="light"] .hdr-nav-group {
+                    background: rgba(99, 102, 241, 0.06);
+                    border-color: rgba(99, 102, 241, 0.12);
+                }
+
+                [data-theme="light"] .hdr-nav-btn {
+                    color: var(--text-dim);
+                }
+
+                [data-theme="light"] .hdr-nav-btn:hover {
+                    color: var(--primary);
+                    background: rgba(99, 102, 241, 0.07);
+                }
+
+                [data-theme="light"] .hdr-nav-btn.active {
+                    color: var(--primary);
+                    background: rgba(99, 102, 241, 0.12);
+                }
+
+                [data-theme="light"] .hdr-user-pill {
+                    background: rgba(99, 102, 241, 0.06);
+                    border-color: rgba(99, 102, 241, 0.12);
+                }
+
+                [data-theme="light"] .hdr-user-name {
+                    color: var(--text-main);
+                }
+
+                [data-theme="light"] .hdr-logout {
+                    background: rgba(239, 68, 68, 0.07);
+                }
+
+                /* ── Theme Toggle Button ── */
+                .hdr-theme-toggle {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0;
+                    margin-left: 0.25rem;
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .theme-toggle-track {
+                    width: 52px;
+                    height: 28px;
+                    background: rgba(255, 255, 255, 0.06);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 100px;
+                    display: flex;
+                    align-items: center;
+                    padding: 3px;
+                    transition: background 0.3s, border-color 0.3s;
+                    position: relative;
+                }
+
+                [data-theme="light"] .theme-toggle-track {
+                    background: rgba(99, 102, 241, 0.1);
+                    border-color: rgba(99, 102, 241, 0.2);
+                }
+
+                .hdr-theme-toggle:hover .theme-toggle-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+
+                [data-theme="light"] .hdr-theme-toggle:hover .theme-toggle-track {
+                    background: rgba(99, 102, 241, 0.18);
+                    border-color: rgba(99, 102, 241, 0.35);
+                }
+
+                .theme-toggle-thumb {
+                    width: 22px;
+                    height: 22px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.12);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    line-height: 1;
+                    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+                    transform: translateX(0);
+                    flex-shrink: 0;
+                }
+
+                [data-theme="light"] .theme-toggle-thumb {
+                    transform: translateX(24px);
+                    background: rgba(99, 102, 241, 0.15);
                 }
 
                 .hdr-nav-btn {

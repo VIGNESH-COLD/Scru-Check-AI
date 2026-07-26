@@ -27,7 +27,7 @@ These metrics evaluate whether the paper adheres to institutional rules. A failu
 
 1. **Format Compliance:** Checks section structure, numbering conventions, and overall layout.
 2. **Regulation Compliance:** Verifies course code, regulation year, semester, and subject details.
-3. **Mark Distribution:** Verifies totals and section-wise allocations against the approved scheme.
+3. **Mark & Time Distribution:** Strictly validates section arithmetic, total marks, and allowed mark values (e.g., 2, 13, 15, 16). Also provides an academic complexity-based estimation of expected completion time.
 4. **Permitted Aids:** Ensures adherence to rules regarding calculators, charts, and formula sheets.
 
 ---
