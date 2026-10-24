@@ -5,7 +5,6 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com)
-[![Mistral AI](https://img.shields.io/badge/Mistral_AI-RAG-FF6B35.svg)](https://mistral.ai)
 
 ---
 
@@ -32,7 +31,7 @@ ScruCheck AI automatically analyzes question papers against **10 scrutiny criter
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
-- Mistral AI API key
+- Ollama
 
 ### Backend Setup
 
@@ -40,10 +39,6 @@ ScruCheck AI automatically analyzes question papers against **10 scrutiny criter
 cd backend
 python -m venv venv
 pip install -r requirements.txt
-
-# Create .env file
-echo MISTRAL_API_KEY=your_key > .env
-echo SECRET_KEY=your_jwt_secret >> .env
 
 # Run server
  .\venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
