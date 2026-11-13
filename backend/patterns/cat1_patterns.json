@@ -2,18 +2,56 @@
     {
         "name": "CAT-1 (Unit I & II) - Standard",
         "exam_type": "CAT1",
+        "permitted_units": [1, 2],
+        "unit_mapping": {
+            "type": "section_group",
+            "groups": [
+                {"name": "First Part A", "section": "Part A", "occurrence": 1, "required_unit": 1, "questions_count": 5},
+                {"name": "First Part B", "section": "Part B", "occurrence": 1, "required_unit": 1, "questions_count": 1},
+                {"name": "Second Part A", "section": "Part A", "occurrence": 2, "required_unit": 2, "questions_count": 5},
+                {"name": "Second Part B", "section": "Part B", "occurrence": 2, "required_unit": 2, "questions_count": 1}
+            ]
+        },
         "sections": [
             {
                 "name": "Part A",
                 "questions": 10,
                 "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 10,
+                "required_attempts": 10,
                 "description": "10 Questions (5 from Unit I, 5 from Unit II)"
             },
             {
                 "name": "Part B",
                 "questions": 2,
                 "marks_per_question": 15,
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 4,
+                "required_attempts": 2,
                 "description": "2 Questions (1 from Unit I, 1 from Unit II) with internal choice"
+            }
+        ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 2,
+                "questions": 5,
+                "marks_per_question": 2,
+                "total_marks": 10,
+                "formula": "5 × 2 = 10 Marks",
+                "description": "2 headings of PART A [5 × 2 = 10 Marks] (Unit I & Unit II)"
+            },
+            {
+                "section": "Part B",
+                "count": 2,
+                "questions": 1,
+                "marks_per_question": 15,
+                "total_marks": 15,
+                "formula": "1 × 15 = 15 Marks",
+                "description": "2 headings of PART B [1 × 15 = 15 Marks] (Unit I & Unit II)"
             }
         ],
         "total_marks": 50,
@@ -22,18 +60,56 @@
     {
         "name": "CAT-1 (Unit I & II) - Alternate",
         "exam_type": "CAT1",
+        "permitted_units": [1, 2],
+        "unit_mapping": {
+            "type": "section_group",
+            "groups": [
+                {"name": "First Part A", "section": "Part A", "occurrence": 1, "required_unit": 1, "questions_count": 6},
+                {"name": "First Part B", "section": "Part B", "occurrence": 1, "required_unit": 1, "questions_count": 1},
+                {"name": "Second Part A", "section": "Part A", "occurrence": 2, "required_unit": 2, "questions_count": 6},
+                {"name": "Second Part B", "section": "Part B", "occurrence": 2, "required_unit": 2, "questions_count": 1}
+            ]
+        },
         "sections": [
             {
                 "name": "Part A",
                 "questions": 12,
                 "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 12,
+                "required_attempts": 12,
                 "description": "12 Questions (6 from Unit I, 6 from Unit II)"
             },
             {
                 "name": "Part B",
                 "questions": 2,
                 "marks_per_question": 13,
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 4,
+                "required_attempts": 2,
                 "description": "2 Questions (1 from Unit I, 1 from Unit II) with internal choice"
+            }
+        ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 2,
+                "questions": 6,
+                "marks_per_question": 2,
+                "total_marks": 12,
+                "formula": "6 × 2 = 12 Marks",
+                "description": "2 headings of PART A [6 × 2 = 12 Marks] (Unit I & Unit II)"
+            },
+            {
+                "section": "Part B",
+                "count": 2,
+                "questions": 1,
+                "marks_per_question": 13,
+                "total_marks": 13,
+                "formula": "1 × 13 = 13 Marks",
+                "description": "2 headings of PART B [1 × 13 = 13 Marks] (Unit I & Unit II)"
             }
         ],
         "total_marks": 50,

@@ -1,53 +1,36 @@
-# === Environment & Secrets ===
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment & Secret files
 .env
 .env.local
 .env.*.local
-*.env
 
-# === Python ===
-__pycache__/
-*.py[cod]
-*$py.class
-*.pyo
-*.pyd
-.Python
-venv/
-env/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-
-# === Database ===
-*.db
-*.sqlite
-*.sqlite3
-
-# === AI / Vector Store Cache ===
-chroma_db/
-embedding_cache/
-training_data/
-
-# === Generated Reports ===
-backend/reports/*.docx
-backend/reports/*.pdf
-
-# === Temp files ===
-backend/temp_*.py
-backend/temp_*.txt
-backend/temp_*.json
-backend/output.txt
-backend/test_parser*.py
-temp_images/
-*.tmp
-
-# === Node / Frontend ===
-node_modules/
+# Build outputs
 dist/
 build/
-.vite/
+*.egg-info/
 
-# === IDE / OS ===
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+
+# Ruff / Linters
+.ruff_cache/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
-*.DS_Store
-Thumbs.db
+
+# Local data & uploads
+uploads/
+generated_reports/
+*.db
+*.sqlite

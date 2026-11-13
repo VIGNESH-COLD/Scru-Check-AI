@@ -2,47 +2,152 @@
     {
         "name": "University Pattern 1",
         "exam_type": "University",
+        "permitted_units": [1, 2, 3, 4, 5],
+        "unit_mapping": {
+            "type": "question_number_map",
+            "rules": {
+                "1": 1, "2": 1,
+                "3": 2, "4": 2,
+                "5": 3, "6": 3,
+                "7": 4, "8": 4,
+                "9": 5, "10": 5,
+                "11": 1,
+                "12": 2,
+                "13": 3,
+                "14": 4,
+                "15": 5
+            }
+        },
         "sections": [
             {
                 "name": "Part A",
                 "questions": 10,
                 "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 10,
+                "required_attempts": 10,
                 "description": "Short Answer (2 from each Unit)"
             },
             {
                 "name": "Part B",
                 "questions": 5,
                 "marks_per_question": 13,
-                "description": "Long Answer (1 from each Unit)"
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 10,
+                "required_attempts": 5,
+                "description": "Long Answer (1 from each Unit) with internal choice"
             },
             {
                 "name": "Part C",
                 "questions": 1,
                 "marks_per_question": 15,
-                "description": "Application/Case Study (Unit V)"
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 2,
+                "required_attempts": 1,
+                "description": "Application/Case Study (Any Unit) with internal choice"
+            }
+        ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 1,
+                "questions": 10,
+                "marks_per_question": 2,
+                "total_marks": 20,
+                "formula": "10 × 2 = 20 Marks",
+                "description": "PART A [10 × 2 = 20 Marks]"
+            },
+            {
+                "section": "Part B",
+                "count": 1,
+                "questions": 5,
+                "marks_per_question": 13,
+                "total_marks": 65,
+                "formula": "5 × 13 = 65 Marks",
+                "description": "PART B [5 × 13 = 65 Marks]"
+            },
+            {
+                "section": "Part C",
+                "count": 1,
+                "questions": 1,
+                "marks_per_question": 15,
+                "total_marks": 15,
+                "formula": "1 × 15 = 15 Marks",
+                "description": "PART C [1 × 15 = 15 Marks]"
             }
         ],
         "total_marks": 100,
-        "time_minutes": 180
+        "time_minutes": 180,
+        "reading_time_minutes": 15,
+        "revision_time_minutes": 15
     },
     {
         "name": "University Pattern 2",
         "exam_type": "University",
+        "permitted_units": [1, 2, 3, 4, 5],
+        "unit_mapping": {
+            "type": "question_number_map",
+            "rules": {
+                "1": 1, "2": 1,
+                "3": 2, "4": 2,
+                "5": 3, "6": 3,
+                "7": 4, "8": 4,
+                "9": 5, "10": 5,
+                "11": 1,
+                "12": 2,
+                "13": 3,
+                "14": 4,
+                "15": 5
+            }
+        },
         "sections": [
             {
                 "name": "Part A",
                 "questions": 10,
                 "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 10,
+                "required_attempts": 10,
                 "description": "Short Answer (2 from each Unit)"
             },
             {
                 "name": "Part B",
                 "questions": 5,
                 "marks_per_question": 16,
-                "description": "Long Answer (1 from each Unit)"
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 10,
+                "required_attempts": 5,
+                "description": "Long Answer (1 from each Unit) with internal choice"
+            }
+        ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 1,
+                "questions": 10,
+                "marks_per_question": 2,
+                "total_marks": 20,
+                "formula": "10 × 2 = 20 Marks",
+                "description": "PART A [10 × 2 = 20 Marks]"
+            },
+            {
+                "section": "Part B",
+                "count": 1,
+                "questions": 5,
+                "marks_per_question": 16,
+                "total_marks": 80,
+                "formula": "5 × 16 = 80 Marks",
+                "description": "PART B [5 × 16 = 80 Marks]"
             }
         ],
         "total_marks": 100,
-        "time_minutes": 180
+        "time_minutes": 180,
+        "reading_time_minutes": 15,
+        "revision_time_minutes": 15
     }
 ]

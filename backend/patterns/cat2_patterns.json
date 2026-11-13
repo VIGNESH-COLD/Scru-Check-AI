@@ -2,21 +2,107 @@
     {
         "name": "CAT-2 (Unit III)",
         "exam_type": "CAT2",
+        "permitted_units": [3],
+        "unit_mapping": {
+            "type": "fixed_unit",
+            "required_unit": 3
+        },
         "sections": [
             {
                 "name": "Part A",
                 "questions": 5,
                 "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 5,
+                "required_attempts": 5,
                 "description": "5 Questions from Unit III"
             },
             {
                 "name": "Part B",
                 "questions": 1,
                 "marks_per_question": 15,
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 2,
+                "required_attempts": 1,
                 "description": "1 Question from Unit III with internal choice"
             }
         ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 1,
+                "questions": 5,
+                "marks_per_question": 2,
+                "total_marks": 10,
+                "formula": "5 × 2 = 10 Marks",
+                "description": "1 heading of PART A [5 × 2 = 10 Marks] (Unit III)"
+            },
+            {
+                "section": "Part B",
+                "count": 1,
+                "questions": 1,
+                "marks_per_question": 15,
+                "total_marks": 15,
+                "formula": "1 × 15 = 15 Marks",
+                "description": "1 heading of PART B [1 × 15 = 15 Marks] (Unit III)"
+            }
+        ],
         "total_marks": 25,
-        "time_minutes": 60
+        "time_minutes": 45
+    },
+    {
+        "name": "CAT-2 (Unit III) - Alternate",
+        "exam_type": "CAT2",
+        "permitted_units": [3],
+        "unit_mapping": {
+            "type": "fixed_unit",
+            "required_unit": 3
+        },
+        "sections": [
+            {
+                "name": "Part A",
+                "questions": 6,
+                "marks_per_question": 2,
+                "has_internal_choice": false,
+                "choice_type": "none",
+                "available_questions": 6,
+                "required_attempts": 6,
+                "description": "6 Questions from Unit III (6 × 2 = 12 Marks)"
+            },
+            {
+                "name": "Part B",
+                "questions": 1,
+                "marks_per_question": 13,
+                "has_internal_choice": true,
+                "choice_type": "or",
+                "available_questions": 2,
+                "required_attempts": 1,
+                "description": "1 Question from Unit III with internal choice (1 × 13 = 13 Marks)"
+            }
+        ],
+        "section_structures": [
+            {
+                "section": "Part A",
+                "count": 1,
+                "questions": 6,
+                "marks_per_question": 2,
+                "total_marks": 12,
+                "formula": "6 × 2 = 12 Marks",
+                "description": "1 heading of PART A [6 × 2 = 12 Marks] (Unit III)"
+            },
+            {
+                "section": "Part B",
+                "count": 1,
+                "questions": 1,
+                "marks_per_question": 13,
+                "total_marks": 13,
+                "formula": "1 × 13 = 13 Marks",
+                "description": "1 heading of PART B [1 × 13 = 13 Marks] (Unit III)"
+            }
+        ],
+        "total_marks": 25,
+        "time_minutes": 45
     }
 ]
