@@ -172,8 +172,8 @@ def test_generate_scrutiny_pdf_bytes(sample_report: FormatComplianceReport):
     assert pdf_bytes.startswith(b"%PDF-")
 
 
-def test_pdf_content_and_zero_score(sample_report: FormatComplianceReport):
-    """Verifies that the generated PDF contains institutional name, all criteria, and no percentages in summary."""
+def test_pdf_content_and_staff_summary(sample_report: FormatComplianceReport):
+    """Verifies that the generated PDF contains the concise staff-report essentials."""
     pdf_bytes = generate_scrutiny_pdf(sample_report)
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     assert len(doc) >= 1
@@ -182,15 +182,17 @@ def test_pdf_content_and_zero_score(sample_report: FormatComplianceReport):
     # Check institutional name from config
     assert settings.INSTITUTION_NAME.upper() in full_text
     # Check document title
-    assert "ACADEMIC QUESTION PAPER SCRUTINY" in full_text
+    assert "QUESTION PAPER SCRUTINY REPORT" in full_text
     # Check subject code
     assert "CS8080" in full_text
-    # Check criteria headers and sections
-    assert "Detailed Evaluation of Ten Institutional Criteria" in full_text
-    assert "Executive Summary & Scrutiny Verdict" in full_text
-    assert "Committee Recommendations & Action Items" in full_text
-    assert "Scrutiny Committee Member" in full_text
-    assert "Controller of Examinations" in full_text
+    # Check concise staff-facing decision, action, and seven-criteria sections.
+    assert "Decision at a glance" in full_text
+    assert "Priority actions for staff" in full_text
+    assert "Seven-criteria scrutiny summary" in full_text
+    assert "1. Format compliance" in full_text
+    assert "7. Repetition risk" in full_text
+    assert "Sign-off" not in full_text
+    assert "Faculty reviewer" not in full_text
     # Check categorical statuses
     assert "PASS" in full_text
     assert "APPROVED" in full_text

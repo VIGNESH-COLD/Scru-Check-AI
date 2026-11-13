@@ -274,7 +274,7 @@ class RepetitionRiskAnalyzer:
                 matched_id = None
                 matched_paper = None
                 matched_snippet = None
-                reason = "Unique question statement with no detected internal or historical repetition."
+                reason = "Unique question Statement"
                 req_review = False
 
             evaluations.append(

@@ -99,7 +99,6 @@ class NumberedCanvas(canvas.Canvas):
 
         self.setFont("Helvetica", 7.5)
         self.setFillColor(COLOR_MUTED)
-        self.drawString(36, 18, f"Confidential | {self.doc_institution} | Office of the Controller of Examinations")
         page_str = f"Page {self._pageNumber} of {page_count}"
         self.drawRightString(page_w - 36, 18, page_str)
 
@@ -173,8 +172,8 @@ def _get_val(obj: Any, *keys: str, default: Any = None) -> Any:
     return default
 
 
-def generate_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
-    """Generates a comprehensive, professional PDF scrutiny report as bytes."""
+def generate_detailed_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
+    """Generates the former comprehensive scrutiny report for internal reference."""
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -371,12 +370,6 @@ def generate_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
             Paragraph(f"<font face='Courier'>{_sanitize_text(report.qp_filename)}</font>", meta_val_style),
             Paragraph("Syllabus File:", meta_label_style),
             Paragraph(f"<font face='Courier'>{_sanitize_text(report.syllabus_filename)}</font>", meta_val_style),
-        ],
-        [
-            Paragraph("Previous Year QP:", meta_label_style),
-            Paragraph("Not Provided", meta_val_style),
-            Paragraph("Scrutiny Mode:", meta_label_style),
-            Paragraph("Strict Institutional Rubric (Criteria 1-10)", meta_val_style),
         ],
     ]
     meta_table = Table(
@@ -1048,6 +1041,335 @@ def generate_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
         c.doc_subject_code = subject_code
         c.doc_exam_type = report.selected_category or "Institutional Report"
         return c
+
+    doc.build(story, canvasmaker=make_canvas)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
+
+def generate_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
+    """Generate a concise, staff-ready scrutiny report from the completed analysis."""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=36,
+        rightMargin=36,
+        topMargin=34,
+        bottomMargin=38,
+    )
+    styles = getSampleStyleSheet()
+    content_width = A4[0] - 72
+
+    title = ParagraphStyle(
+        "StaffTitle", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=16,
+        leading=19, textColor=COLOR_PRIMARY_DARK,
+    )
+    subtitle = ParagraphStyle(
+        "StaffSubtitle", parent=styles["Normal"], fontName="Helvetica", fontSize=8,
+        leading=11, textColor=COLOR_MUTED,
+    )
+    section = ParagraphStyle(
+        "StaffSection", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10,
+        leading=13, textColor=COLOR_PRIMARY_DARK, spaceBefore=10, spaceAfter=5,
+    )
+    body = ParagraphStyle(
+        "StaffBody", parent=styles["Normal"], fontName="Helvetica", fontSize=8,
+        leading=10.5, textColor=COLOR_SECONDARY,
+    )
+    body_bold = ParagraphStyle(
+        "StaffBodyBold", parent=body, fontName="Helvetica-Bold", textColor=COLOR_PRIMARY_DARK,
+    )
+    small = ParagraphStyle(
+        "StaffSmall", parent=body, fontSize=7.2, leading=9.2, textColor=COLOR_MUTED,
+    )
+    table_header = ParagraphStyle(
+        "StaffTableHeader", parent=body, fontName="Helvetica-Bold", fontSize=7.3,
+        leading=9, textColor=COLOR_WHITE,
+    )
+
+    def detail_value(key: str, fallback: str = "Not provided") -> str:
+        items = getattr(getattr(report, "exam_details", None), "items", None)
+        item = items.get(key) if items else None
+        value = getattr(item, "extracted_value", None) if item else None
+        if value:
+            return str(value)
+        checks = getattr(report, "header_checks", None) or {}
+        check = checks.get(key) if isinstance(checks, dict) else None
+        value = getattr(check, "extracted_value", None) if check else None
+        return str(value or fallback)
+
+    pattern = getattr(report, "pattern_compliance", None)
+    exam_details = getattr(report, "exam_details", None)
+    syllabus = getattr(report, "syllabus_alignment", None)
+    marks = getattr(report, "mark_distribution", None)
+    blooms = getattr(report, "blooms_taxonomy", None)
+    grammar = getattr(report, "grammar_check", None)
+    repetition = getattr(report, "repetition_risk", None)
+
+    format_ok = bool(
+        pattern
+        and getattr(pattern, "pattern_name_match", False)
+        and getattr(pattern, "sections_match", False)
+        and getattr(pattern, "duration_match", False)
+        and getattr(pattern, "marks_match", False)
+    )
+    details_ok = bool(exam_details and not getattr(exam_details, "missing_details", []))
+    syllabus_status = getattr(syllabus, "overall_status", "REVIEW REQUIRED") if syllabus else "REVIEW REQUIRED"
+    syllabus_ok = str(syllabus_status).upper() in {"PASS", "ALIGNED"}
+    marks_ok = bool(marks and str(getattr(marks, "overall_status", "")).upper() == "PASS")
+    blooms_ok = bool(blooms and str(getattr(blooms, "overall_status", "")).upper() == "PASS")
+    grammar_ok = bool(grammar and str(getattr(grammar, "overall_status", "")).upper() == "PASS")
+    repetition_ok = bool(repetition and str(getattr(repetition, "overall_status", "")).upper() == "PASS")
+
+    subject_code = detail_value("subject_code", detail_value("course_code"))
+    subject_name = detail_value("subject_name", detail_value("course_title"))
+    programme = detail_value("programme")
+    branch = detail_value("branch")
+    semester = detail_value("semester")
+    regulation = detail_value("regulations", "Not provided")
+    duration = (
+        f"{getattr(pattern, 'found_duration_minutes', None)} minutes"
+        if getattr(pattern, "found_duration_minutes", None)
+        else "Not declared"
+    )
+    maximum_marks = (
+        f"{getattr(pattern, 'found_total_marks', None)} marks"
+        if getattr(pattern, "found_total_marks", None)
+        else "Not declared"
+    )
+
+    checks = [format_ok, details_ok, syllabus_ok, marks_ok, blooms_ok, grammar_ok, repetition_ok]
+    passed_count = sum(checks)
+    decision = "APPROVED FOR EXAMINATION" if getattr(report, "is_approved", False) else "REVISION REQUIRED"
+    decision_status = "PASS" if getattr(report, "is_approved", False) else "FLAG"
+    now = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    story: list[Any] = []
+    header = Table(
+        [[
+            Paragraph(
+                "QUESTION PAPER SCRUTINY REPORT"
+                f"<br/><font size='8'>{_sanitize_text(settings.INSTITUTION_NAME.upper())}</font>",
+                title,
+            ),
+            Paragraph(
+                f"<b>Report ID:</b> <font face='Courier'>{_sanitize_text(str(getattr(report, 'report_id', ''))[:13])}</font><br/>"
+                f"<b>Generated:</b> {now}",
+                small,
+            ),
+        ]],
+        colWidths=[content_width * 0.67, content_width * 0.33],
+    )
+    header.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.extend([header, Spacer(1, 7), HRFlowable(width="100%", thickness=1.5, color=COLOR_PRIMARY_DARK), Spacer(1, 8)])
+
+    metadata = [
+        [Paragraph("<b>Subject</b>", small), Paragraph(f"{_sanitize_text(subject_code)} - {_sanitize_text(subject_name)}", body), Paragraph("<b>Pattern</b>", small), Paragraph(_sanitize_text(str(getattr(report, "selected_pattern_name", "Not provided"))), body)],
+        [Paragraph("<b>Programme</b>", small), Paragraph(f"{_sanitize_text(programme)} | {_sanitize_text(branch)}", body), Paragraph("<b>Semester</b>", small), Paragraph(_sanitize_text(semester), body)],
+        [Paragraph("<b>Regulation</b>", small), Paragraph(_sanitize_text(regulation), body), Paragraph("<b>Time / Marks</b>", small), Paragraph(f"{_sanitize_text(duration)} / {_sanitize_text(maximum_marks)}", body)],
+    ]
+    meta_table = Table(metadata, colWidths=[content_width * .13, content_width * .37, content_width * .16, content_width * .34])
+    meta_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), COLOR_BG_LIGHT),
+        ("BOX", (0, 0), (-1, -1), .5, COLOR_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), .4, COLOR_BORDER_LIGHT),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story.extend([meta_table, Spacer(1, 9), Paragraph("Decision at a glance", section)])
+
+    decision_table = Table(
+        [[
+            Paragraph("<b>SCRUTINY DECISION</b><br/>" + decision, body_bold),
+            _make_badge(decision_status),
+            Paragraph(f"<b>{passed_count} / {len(checks)}</b><br/><font size='7'>key checks passed</font>", body_bold),
+            Paragraph(f"<b>{len(getattr(report, 'blocking_reasons', []) or [])}</b><br/><font size='7'>blocking items</font>", body_bold),
+        ]],
+        colWidths=[content_width * .45, content_width * .14, content_width * .20, content_width * .21],
+    )
+    decision_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), COLOR_BG_ALT),
+        ("BOX", (0, 0), (-1, -1), 1, COLOR_PRIMARY_DARK if getattr(report, "is_approved", False) else COLOR_SECONDARY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (1, 0), (1, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.extend([decision_table, Spacer(1, 8), Paragraph("Priority actions for staff", section)])
+
+    actions: list[str] = []
+    actions.extend([str(reason) for reason in (getattr(report, "blocking_reasons", []) or [])])
+    if not details_ok:
+        missing = ", ".join(getattr(exam_details, "missing_details", []) or [])
+        actions.append(f"Add the missing examination details: {missing or 'verify the header details' }.")
+    if not syllabus_ok:
+        actions.append("Verify every question against the approved syllabus and resolve unmapped or out-of-scope items.")
+    if not marks_ok:
+        actions.append("Correct mark allocation, question subdivisions, or time distribution before approval.")
+    if blooms and getattr(blooms, "rule_bt_missing_count", 0):
+        actions.append(f"Add Bloom's Taxonomy declarations for {getattr(blooms, 'rule_bt_missing_count', 0)} question(s).")
+    if grammar and getattr(grammar, "questions_with_issues_count", 0):
+        actions.append(f"Revise language in {getattr(grammar, 'questions_with_issues_count', 0)} flagged question(s).")
+    if repetition and getattr(repetition, "flag_count", 0):
+        actions.append(f"Review {getattr(repetition, 'flag_count', 0)} potential repetition risk item(s).")
+    if not actions:
+        actions.append("No immediate revision is required. Proceed to departmental sign-off and final formatting review.")
+
+    action_rows = []
+    for index, action in enumerate(actions[:6], 1):
+        action_rows.append([Paragraph(f"<b>{index}</b>", body_bold), Paragraph(_sanitize_text(action), body)])
+    action_table = Table(action_rows, colWidths=[content_width * .06, content_width * .94])
+    action_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), COLOR_BG_LIGHT),
+        ("BOX", (0, 0), (-1, -1), .5, COLOR_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), .35, COLOR_BORDER_LIGHT),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    story.extend([action_table, Spacer(1, 8)])
+
+    flagged_questions: list[tuple[str, str, str, str]] = []
+
+    def add_question_flag(question_id: Any, area: str, finding: Any, action: str) -> None:
+        if not question_id:
+            return
+        message = str(finding or "Requires faculty review.").strip()
+        flagged_questions.append((str(question_id), area, message[:180], action))
+
+    for item in getattr(marks, "evaluations", []) or []:
+        if str(getattr(item, "status", "")).upper() in {"FLAG", "REVIEW_REQUIRED"}:
+            add_question_flag(
+                getattr(item, "question_id", ""),
+                "Marks / time",
+                getattr(item, "reason", "Mark allocation or subdivision rule requires review."),
+                "Correct the marks, subdivision, or time allocation.",
+            )
+
+    for item in getattr(blooms, "questions", []) or []:
+        if str(getattr(item, "overall_status", "")).upper() in {"FLAG", "REVIEW_REQUIRED"}:
+            reasons = getattr(item, "reasons", None) or []
+            finding = "; ".join(str(reason) for reason in reasons[:2]) or getattr(item, "rationale", "Bloom's taxonomy review required.")
+            add_question_flag(
+                getattr(item, "question_id", ""),
+                "Bloom's taxonomy",
+                finding,
+                "Add or align the declared cognitive level.",
+            )
+
+    for item in getattr(grammar, "questions", []) or []:
+        if str(getattr(item, "status", "")).upper() in {"FLAG", "REVIEW_REQUIRED"}:
+            issues = getattr(item, "issues", None) or []
+            finding = "; ".join(
+                str(getattr(issue, "explanation", "")) for issue in issues[:2] if getattr(issue, "explanation", "")
+            ) or "Language clarity or grammar review required."
+            add_question_flag(
+                getattr(item, "question_id", ""),
+                "Language",
+                finding,
+                "Revise the wording before final approval.",
+            )
+
+    for item in getattr(repetition, "evaluations", []) or []:
+        if str(getattr(item, "status", "")).upper() in {"FLAG", "REVIEW_REQUIRED"}:
+            add_question_flag(
+                getattr(item, "question_id", ""),
+                "Repetition risk",
+                getattr(item, "reason", "Potential overlap with another question."),
+                "Rephrase or replace the question after faculty review.",
+            )
+
+    for item in getattr(syllabus, "results", []) or []:
+        if str(_get_val(item, "status", default="")).upper() in {"MISMATCH", "UNMAPPED", "REVIEW_REQUIRED", "FLAG"}:
+            add_question_flag(
+                _get_val(item, "question_id", default=""),
+                "Syllabus scope",
+                _get_val(item, "reason", "scrutiny_finding", "explanation", default="Question requires syllabus-scope review."),
+                "Confirm alignment with the approved syllabus.",
+            )
+
+    if flagged_questions:
+        story.append(Paragraph("Questions requiring attention", section))
+        question_rows = [[
+            Paragraph("<b>Question</b>", table_header),
+            Paragraph("<b>Issue area</b>", table_header),
+            Paragraph("<b>Finding</b>", table_header),
+            Paragraph("<b>Required action</b>", table_header),
+        ]]
+        for question_id, area, finding, action in flagged_questions[:12]:
+            question_rows.append([
+                Paragraph(f"<b>{_sanitize_text(question_id)}</b>", body_bold),
+                Paragraph(_sanitize_text(area), body),
+                Paragraph(_sanitize_text(finding), body),
+                Paragraph(_sanitize_text(action), body),
+            ])
+        question_table = Table(
+            question_rows,
+            colWidths=[content_width * .11, content_width * .19, content_width * .40, content_width * .30],
+            repeatRows=1,
+        )
+        question_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), COLOR_PRIMARY_DARK),
+            ("BOX", (0, 0), (-1, -1), .5, COLOR_BORDER),
+            ("INNERGRID", (0, 0), (-1, -1), .35, COLOR_BORDER_LIGHT),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [COLOR_WHITE, COLOR_BG_LIGHT]),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        story.extend([question_table, Spacer(1, 8)])
+
+    story.append(Paragraph("Seven-criteria scrutiny summary", section))
+
+    criteria_summary = [
+        [Paragraph("<b>Criterion</b>", table_header), Paragraph("<b>Status</b>", table_header), Paragraph("<b>Staff takeaway</b>", table_header)],
+        [Paragraph("1. Format compliance", body_bold), _make_badge("PASS" if format_ok else "FLAG"), Paragraph("Pattern, section headers, duration, and marks match the selected format." if format_ok else "Check the declared pattern, sections, duration, and maximum marks.", body)],
+        [Paragraph("2. Exam details", body_bold), _make_badge("PASS" if details_ok else "FLAG"), Paragraph("Required header information is complete." if details_ok else "Complete any missing regulation, programme, branch, semester, or subject information.", body)],
+        [Paragraph("3. Syllabus alignment", body_bold), _make_badge("PASS" if syllabus_ok else "REVIEW REQUIRED"), Paragraph("All assessed questions align with the approved syllabus." if syllabus_ok else "Confirm the scope of unmapped, mismatched, or review-required questions.", body)],
+        [Paragraph("4. Mark and time distribution", body_bold), _make_badge("PASS" if marks_ok else "FLAG"), Paragraph("Marks and subdivisions comply with the selected pattern." if marks_ok else "Correct the flagged mark, subdivision, or time allocation.", body)],
+        [Paragraph("5. Bloom's taxonomy", body_bold), _make_badge("PASS" if blooms_ok else "FLAG"), Paragraph("Declared cognitive levels and choice parity meet the review rules." if blooms_ok else "Add or align the cognitive-level declarations for the flagged questions.", body)],
+        [Paragraph("6. Grammar and language", body_bold), _make_badge("PASS" if grammar_ok else "FLAG"), Paragraph("Question wording is clear and free from flagged language issues." if grammar_ok else "Revise the language and clarity issues identified for the flagged questions.", body)],
+        [Paragraph("7. Repetition risk", body_bold), _make_badge("PASS" if repetition_ok else "REVIEW REQUIRED"), Paragraph("No material duplicate or repetition risk was detected." if repetition_ok else "Review questions with potential overlap before final approval.", body)],
+    ]
+    criteria_table = Table(criteria_summary, colWidths=[content_width * .29, content_width * .16, content_width * .55], repeatRows=1)
+    criteria_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), COLOR_PRIMARY_DARK),
+        ("BOX", (0, 0), (-1, -1), .5, COLOR_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), .35, COLOR_BORDER_LIGHT),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [COLOR_WHITE, COLOR_BG_LIGHT]),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (1, 0), (1, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story.extend([criteria_table, Spacer(1, 12)])
+
+    def make_canvas(*args: Any, **kwargs: Any) -> NumberedCanvas:
+        canvas_obj = NumberedCanvas(*args, **kwargs)
+        canvas_obj.doc_institution = settings.INSTITUTION_NAME
+        canvas_obj.doc_subject_code = subject_code
+        canvas_obj.doc_exam_type = str(getattr(report, "selected_category", "Institutional Report"))
+        return canvas_obj
 
     doc.build(story, canvasmaker=make_canvas)
     pdf_bytes = buffer.getvalue()

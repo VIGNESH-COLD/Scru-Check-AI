@@ -11,7 +11,6 @@ import {
   Check,
   X,
   Eye,
-  ShieldCheck,
   ClipboardList,
   Layers,
   Filter,
@@ -800,28 +799,22 @@ export const App: React.FC = () => {
   ] : [];
 
   return (
-    <div className="min-h-screen bg-canvas text-ink py-8 sm:py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand">
-      <div className="max-w-4xl mx-auto space-y-5">
+    <div className="app-shell min-h-screen bg-canvas text-ink py-6 sm:py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand">
+      <div className="max-w-6xl mx-auto space-y-5">
         {/* Top Header Card */}
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm flex items-center justify-between">
-          <div className="flex items-center space-x-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-brand flex items-center justify-center text-btn-brand shrink-0 shadow-sm">
-              <ShieldCheck className="w-6 h-6 stroke-[2.2]" />
-            </div>
+        <header className="hero-panel rounded-2xl border border-line bg-surface p-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4">
+          <div className="brand-identity">
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-ink">
-                ScruCheckAI
+              <h1 className="brand-wordmark text-xl sm:text-2xl font-bold text-ink leading-tight">
+                Scru-Check-AI
               </h1>
-              <p className="text-xs text-ink-faint">
-                Institutional Question Paper Scrutiny · Anna University Compliance
-              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-line text-xs font-medium text-ink bg-surface hover:bg-surface-subtle shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="theme-toggle flex items-center space-x-2 px-3.5 py-2 rounded-lg border border-line text-xs font-semibold text-ink bg-surface hover:bg-surface-subtle transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             {isDark ? (
               <>
@@ -835,15 +828,12 @@ export const App: React.FC = () => {
               </>
             )}
           </button>
-        </div>
+        </header>
 
         {/* Exam Pattern Card */}
-        <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-4">
+        <section className="workspace-card rounded-[28px] border border-line bg-surface p-6 shadow-sm space-y-4">
           <div>
             <h2 className="text-xl font-bold text-ink tracking-tight">Exam Pattern</h2>
-            <p className="text-sm text-ink-faint mt-0.5">
-              Select the exam pattern for format and mark validation.
-            </p>
           </div>
 
           {/* Tab Capsule Segmented Control */}
@@ -866,7 +856,7 @@ export const App: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        </section>
 
         {/* Pattern Option Cards (2-Column Grid) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -964,7 +954,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Upload & Configuration (3-Column Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="upload-grid grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Column 1: Question Paper Upload */}
           <div className="rounded-2xl p-5 bg-surface border border-line shadow-sm flex flex-col justify-between">
             <h3 className="text-base font-bold text-ink mb-3">Question Paper</h3>
@@ -1119,19 +1109,13 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* 5. Bottom Action Banner ("Ready to scrutinise?") */}
-        <div className="rounded-2xl p-5 sm:p-6 bg-brand text-btn-brand flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-          <div>
-            <h3 className="text-lg font-bold text-btn-brand tracking-tight">Ready to scrutinise?</h3>
-            <p className="text-xs opacity-90 mt-0.5">
-              {file ? `Ready to evaluate ${file.name}` : "Upload the question paper to start the check."}
-            </p>
-          </div>
+        {/* Primary scrutiny action */}
+        <div className="flex justify-center py-2 sm:py-3">
           <button
             type="button"
             onClick={handleCheckCompliance}
             disabled={isLoading || !file}
-            className="px-6 py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-85 disabled:cursor-not-allowed text-slate-900 font-extrabold text-xs sm:text-sm tracking-wide shadow-md transition-all whitespace-nowrap cursor-pointer active:scale-98 flex items-center justify-center space-x-2"
+            className="px-7 py-3.5 rounded-xl bg-brand hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed text-btn-brand font-extrabold text-xs sm:text-sm tracking-wide shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-98 flex items-center justify-center space-x-2"
           >
             {isLoading ? (
               <>
@@ -1322,11 +1306,6 @@ export const App: React.FC = () => {
                   </div>
                   <p className="text-xs text-ink-faint mt-0.5 font-medium flex items-center flex-wrap gap-2">
                     <span>Pattern: <span className="text-ink font-semibold">{report.selected_pattern_name}</span></span>
-                    {report.llm_provider_used && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono bg-surface-muted text-ink border border-line">
-                        LLM: <strong className="ml-1 text-brand-ink">{report.llm_provider_used}</strong>
-                      </span>
-                    )}
                   </p>
                 </div>
               </div>
@@ -1398,7 +1377,6 @@ export const App: React.FC = () => {
             {!report.is_approved && report.blocking_reasons.length > 0 && (
               <div className="p-4 rounded-xl bg-danger-surface border border-danger-line space-y-2 text-danger-ink shadow-sm">
                 <div className="flex items-center space-x-2 font-bold text-xs">
-                  <AlertTriangle className="w-4 h-4 text-danger" />
                   <span>Strict Scrutiny Blocking Reasons ({report.blocking_reasons.length})</span>
                 </div>
                 <ul className="list-disc list-inside text-xs text-danger-ink space-y-1 font-mono">
@@ -1418,11 +1396,8 @@ export const App: React.FC = () => {
                   </span>
                   <div>
                     <h2 className="text-sm sm:text-base font-bold text-ink tracking-wide uppercase">
-                      1) Format Compliance
+                      Format Compliance
                     </h2>
-                    <p className="text-xs text-ink-faint">
-                      Institutional header verification and exam pattern structure matching
-                    </p>
                   </div>
                 </div>
                 <span
@@ -1523,17 +1498,16 @@ export const App: React.FC = () => {
                   {formatCriteria.map((c) => (
                     <div
                       key={c.id}
-                      className="p-3 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-subtle transition-colors"
+                      className="p-3 sm:px-4 sm:py-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_minmax(0,1.35fr)] sm:items-center sm:gap-4 hover:bg-surface-subtle transition-colors"
                     >
-                      <div className="space-y-0.5 sm:w-1/3">
+                      <div className="min-w-0">
                         <div className="flex items-center space-x-2">
                           <span className="text-[11px] font-mono text-ink-faint font-bold">{c.num}</span>
                           <span className="text-xs font-semibold text-ink">{c.label}</span>
                         </div>
-                        <p className="text-[11px] text-ink-faint truncate">{c.description}</p>
                       </div>
 
-                      <div className="sm:w-1/4 flex items-center">
+                      <div className="flex items-center sm:justify-center">
                         {c.passed ? (
                           <span className="text-xs text-brand-ink font-bold inline-flex items-center">
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-brand-ink shrink-0" />
@@ -1547,15 +1521,10 @@ export const App: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="sm:w-5/12 text-left">
+                      <div className="min-w-0 text-left">
                         <div className="font-mono text-xs text-ink truncate font-medium">
                           {c.value}
                         </div>
-                        {c.note && (
-                          <p className="text-[10px] text-ink-faint truncate mt-0.5 font-mono">
-                            {c.note}
-                          </p>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -1572,11 +1541,8 @@ export const App: React.FC = () => {
                   </span>
                   <div>
                     <h2 className="text-sm sm:text-base font-bold text-ink tracking-wide uppercase">
-                      2) Exam Details
+                      Exam Details
                     </h2>
-                    <p className="text-xs text-ink-faint">
-                      The details of examination such as the regulations, programme, branch, semester, subject code and name, duration and maximum marks must be clearly given in the question paper.
-                    </p>
                   </div>
                 </div>
                 <span
@@ -1617,11 +1583,11 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-xs text-ink-faint font-mono sm:text-right max-w-sm">
-                  {report.exam_details?.is_approved
-                    ? "All mandatory examination details are clearly given in the question paper."
-                    : `Missing: ${report.exam_details?.missing_details?.join(", ") || "Mandatory examination details missing"}`}
-                </div>
+                {!report.exam_details?.is_approved && (
+                  <div className="text-xs text-ink-faint font-mono sm:text-right max-w-sm">
+                    Missing: {report.exam_details?.missing_details?.join(", ") || "Mandatory examination details missing"}
+                  </div>
+                )}
               </div>
 
               {/* Exam Details Criteria Displayed One by One */}
@@ -1641,7 +1607,6 @@ export const App: React.FC = () => {
                           <span className="text-[11px] font-mono text-ink-faint font-bold">{c.num}</span>
                           <span className="text-xs font-semibold text-ink">{c.label}</span>
                         </div>
-                        <p className="text-[11px] text-ink-faint truncate">{c.description}</p>
                       </div>
 
                       <div className="sm:w-1/4 flex items-center">
@@ -1662,11 +1627,6 @@ export const App: React.FC = () => {
                         <div className="font-mono text-xs text-ink truncate font-medium">
                           {c.value}
                         </div>
-                        {c.note && (
-                          <p className="text-[10px] text-ink-faint truncate mt-0.5 font-mono">
-                            {c.note}
-                          </p>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -1683,11 +1643,8 @@ export const App: React.FC = () => {
                   </span>
                   <div>
                     <h2 className="text-sm sm:text-base font-bold text-ink tracking-wide uppercase">
-                      3) Syllabus Alignment & Unit Validation
+                      Syllabus Alignment & Unit Validation
                     </h2>
-                    <p className="text-xs text-ink-faint">
-                      Unit-wise prescribed syllabus validation and Course Outcome mapping (Strict Zero-Score)
-                    </p>
                   </div>
                 </div>
 
@@ -1732,14 +1689,6 @@ export const App: React.FC = () => {
                         {report.syllabus_alignment.total_questions}
                       </span>
                       <span className="text-[10px] text-ink-faint block">Assessable Qs</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Q Groups</span>
-                      <span className="text-ink font-bold text-base block mt-0.5 font-mono">
-                        {report.syllabus_alignment.total_question_groups}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">No Alt Inflation</span>
                     </div>
 
                     <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
@@ -1800,22 +1749,16 @@ export const App: React.FC = () => {
 
                   {/* 3 Recharts Bar Charts */}
                   <div className="space-y-2.5">
-                    <span className="text-xs font-semibold text-ink-muted uppercase tracking-wider block">
-                      Visual Scope Distributions (Question Counts Only — No Numerical Scores)
-                    </span>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    <div className="syllabus-insight-grid grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Chart A: Prescribed Units */}
-                      <div className="p-3.5 rounded-xl border border-line bg-surface-subtle space-y-2">
+                      <div className="syllabus-unit-card p-5 rounded-2xl space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-ink uppercase tracking-wider">
-                            A) Prescribed Units
+                          <span className="text-xs font-bold text-ink uppercase tracking-[0.12em]">
+                            Prescribed Units
                           </span>
-                          <span className="text-[10px] font-mono text-ink-faint">Units 1–5</span>
+                          <span className="syllabus-unit-tag">Units 1–5</span>
                         </div>
-                        <p className="text-[10px] text-ink-faint">
-                          Items (Teal) vs Distinct Groups (Amber)
-                        </p>
                         <div className="h-44 w-full pt-1">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={report.syllabus_alignment.chart_prescribed_units || []} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
@@ -1824,8 +1767,8 @@ export const App: React.FC = () => {
                               <Tooltip
                                 contentStyle={{ backgroundColor: chartTheme.tooltipBg, borderColor: chartTheme.tooltipBorder, color: chartTheme.tooltipText, borderRadius: "8px", fontSize: "11px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                               />
-                              <Bar dataKey="question_count" name="Items" fill={chartTheme.barPrimary} radius={[3, 3, 0, 0]} />
-                              <Bar dataKey="question_group_count" name="Distinct Groups" fill={chartTheme.barSecondary} radius={[3, 3, 0, 0]} />
+                              <Bar dataKey="question_count" name="Items" fill={isDark ? "#FFA116" : "#991B1B"} radius={[5, 5, 0, 0]} />
+                              <Bar dataKey="question_group_count" name="Distinct Groups" fill={isDark ? "#0095FF" : "#EAB308"} radius={[5, 5, 0, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -1859,14 +1802,18 @@ export const App: React.FC = () => {
                         });
 
                         return (
-                          <div className="p-4 rounded-xl border border-line bg-surface-subtle space-y-4 md:col-span-2 shadow-sm">
-                            {/* Card Header matching reference */}
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 rounded-lg bg-surface border border-line flex items-center justify-center p-1.5 shadow-sm shrink-0">
-                                <BarChart3 className="w-full h-full text-brand-ink" />
+                          <div className="syllabus-coverage-card p-5 rounded-2xl space-y-4 md:col-span-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="syllabus-coverage-icon">
+                                  <BarChart3 className="w-4 h-4" />
+                                </div>
+                                <span className="text-base font-bold text-ink tracking-tight">
+                                  Syllabus Coverage
+                                </span>
                               </div>
-                              <span className="text-base font-bold text-ink tracking-tight">
-                                Syllabus Coverage
+                              <span className="syllabus-total-badge">
+                                {totalCoverageQuestions} questions
                               </span>
                             </div>
 
@@ -1909,29 +1856,32 @@ export const App: React.FC = () => {
                                   <Bar
                                     dataKey="question_count"
                                     name="Questions"
-                                    fill={chartTheme.barPrimary}
-                                    radius={[0, 4, 4, 0]}
-                                    barSize={18}
+                                    fill={isDark ? "#FFA116" : "#991B1B"}
+                                    radius={[0, 7, 7, 0]}
+                                    barSize={16}
                                   />
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
 
                             {/* Coverage Distribution Progress Bars */}
-                            <div className="space-y-3 pt-2 border-t border-line">
+                            <div className="space-y-3 pt-3 border-t border-line">
                               <div className="flex items-center justify-between text-xs text-ink-faint">
-                                <span className="font-semibold text-ink-muted">Coverage Distribution</span>
-                                <span className="font-mono text-ink-faint">Total: {totalCoverageQuestions} questions</span>
+                                <span className="font-semibold text-ink-muted uppercase tracking-wider text-[10px]">Coverage Distribution</span>
+                                <span className="font-mono text-ink-faint">By unit</span>
                               </div>
 
-                              <div className="space-y-2.5 pt-0.5">
+                              <div className="space-y-2 pt-0.5">
                                 {coverageUnitsData.map((u: any) => (
-                                  <div key={u.unit_label} className="flex items-center space-x-3 text-xs">
-                                    <span className="w-14 text-ink-muted font-medium shrink-0">{u.unit_label}</span>
-                                    <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
+                                  <div key={u.unit_label} className="syllabus-coverage-row flex items-center space-x-3 text-xs">
+                                    <span className="w-14 text-ink-muted font-semibold shrink-0">{u.unit_label}</span>
+                                    <div className="flex-1 h-1.5 bg-surface-muted rounded-full overflow-hidden">
                                       <div
-                                        className="h-full bg-brand rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.min(100, Math.max(u.percentage > 0 ? 3 : 0, u.percentage))}%` }}
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                          width: `${Math.min(100, Math.max(u.percentage > 0 ? 3 : 0, u.percentage))}%`,
+                                          backgroundColor: isDark ? "#FFA116" : "#991B1B",
+                                        }}
                                       />
                                     </div>
                                     <span className="w-16 text-right font-mono font-medium text-ink shrink-0">
@@ -1953,7 +1903,7 @@ export const App: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <Layers className="w-4 h-4 text-brand-ink shrink-0" />
                         <span className="text-xs font-bold text-ink uppercase tracking-wider">
-                          Question-to-Syllabus Mapping Matrix ({filteredResults.length} of {report.syllabus_alignment.results?.length || 0})
+                          Question-to-Syllabus Mapping Matrix
                         </span>
                       </div>
 
@@ -2012,7 +1962,16 @@ export const App: React.FC = () => {
 
                     {/* Mapping Table */}
                     <div className="border border-line rounded-xl overflow-x-auto bg-surface shadow-sm">
-                      <table className="w-full text-left border-collapse text-xs">
+                      <table className="w-full table-fixed text-left border-collapse text-xs">
+                        <colgroup>
+                          <col className="w-[116px]" />
+                          <col className="w-[210px]" />
+                          <col className="w-[92px]" />
+                          <col className="w-[92px]" />
+                          <col className="w-[210px]" />
+                          <col className="w-[92px]" />
+                          <col className="w-[250px]" />
+                        </colgroup>
                         <thead>
                           <tr className="border-b border-line bg-surface-muted text-ink-muted font-mono text-[10px] uppercase">
                             <th className="py-2.5 px-3">Q#</th>
@@ -2033,33 +1992,30 @@ export const App: React.FC = () => {
                             </tr>
                           ) : (
                             filteredResults.map((item: any) => (
-                              <tr key={item.question_id} className="hover:bg-surface-subtle transition-colors">
-                                <td className="py-3 px-3 font-mono">
-                                  <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                              <tr key={item.question_id} className="h-20 hover:bg-surface-subtle transition-colors">
+                                <td className="px-3 align-middle font-mono">
+                                  <div className="flex flex-col items-start gap-1">
                                     <span className="font-bold text-ink">{item.question_id}</span>
-                                    {item.section && (
-                                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-track border border-brand-line text-brand-ink font-semibold">
-                                        {item.section}
-                                      </span>
-                                    )}
-                                    {item.marks != null && (
-                                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-danger-surface text-danger-ink border border-danger-line font-bold">
-                                        {item.marks}M
-                                      </span>
-                                    )}
+                                    <div className="flex items-center gap-1 whitespace-nowrap">
+                                      {item.section && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-track border border-brand-line text-brand-ink font-semibold">
+                                          {item.section}
+                                        </span>
+                                      )}
+                                      {item.marks != null && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-danger-surface text-danger-ink border border-danger-line font-bold">
+                                          {item.marks}M
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
-                                  {item.choice_group && item.choice_group !== item.question_id && (
-                                    <span className="text-[10px] text-ink-faint block mt-0.5">
-                                      Group {item.choice_group} {item.is_alternative ? "(Alt)" : ""}
-                                    </span>
-                                  )}
                                 </td>
-                                <td className="py-3 px-3 text-ink-muted font-medium">
-                                  <p className="line-clamp-2" title={item.question_text}>
+                                <td className="px-3 align-middle text-ink-muted font-medium">
+                                  <p className="truncate" title={item.question_text}>
                                     {item.question_text}
                                   </p>
                                 </td>
-                                <td className="py-3 px-2.5 text-center font-mono">
+                                <td className="px-2.5 align-middle text-center font-mono">
                                   {item.marks === 15 || item.section?.toUpperCase().includes("C") || item.question_number === "16" ? (
                                     <span className="font-bold text-ink-muted text-[11px] px-1.5 py-0.5 rounded bg-surface-muted border border-line" title="15-mark questions are permitted from any unit in the syllabus">
                                       Any (1-5)
@@ -2070,19 +2026,19 @@ export const App: React.FC = () => {
                                     <span className="text-ink-faint text-[11px]">—</span>
                                   )}
                                 </td>
-                                <td className="py-3 px-2.5 text-center font-mono">
+                                <td className="px-2.5 align-middle text-center font-mono">
                                   {item.matched_unit ? (
                                     <span className="font-bold text-brand-ink">Unit {item.matched_unit}</span>
                                   ) : (
                                     <span className="text-ink-faint text-[11px]">None</span>
                                   )}
                                 </td>
-                                <td className="py-3 px-3 text-ink-muted font-medium">
+                                <td className="px-3 align-middle text-ink-muted font-medium">
                                   <span className="truncate block max-w-[180px]" title={item.matched_topic || "None"}>
                                     {item.matched_topic || "—"}
                                   </span>
                                 </td>
-                                <td className="py-3 px-2.5 text-center font-mono">
+                                <td className="px-2.5 align-middle text-center font-mono">
                                   <span
                                     className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase shadow-sm ${
                                       item.status === "ALIGNED"
@@ -2099,15 +2055,10 @@ export const App: React.FC = () => {
                                     {item.status}
                                   </span>
                                 </td>
-                                <td className="py-3 px-3 text-left">
-                                  <p className="text-[11px] text-ink-muted line-clamp-2" title={item.reason}>
+                                <td className="px-3 align-middle text-left">
+                                  <p className="truncate text-[11px] text-ink-muted" title={item.reason}>
                                     {item.reason}
                                   </p>
-                                  {item.evidence && (
-                                    <p className="text-[10px] text-ink-faint truncate mt-0.5 font-mono" title={item.evidence}>
-                                      {item.evidence}
-                                    </p>
-                                  )}
                                 </td>
                               </tr>
                             ))
@@ -2129,11 +2080,8 @@ export const App: React.FC = () => {
                   </span>
                   <div>
                     <h2 className="text-sm sm:text-base font-bold text-ink tracking-wide uppercase">
-                      4) Mark and Time Distribution
+                      Mark and Time Distribution
                     </h2>
-                    <p className="text-xs text-ink-faint">
-                      Cognitive answer depth via LLM API, section placement, and long-answer subdivision limits (Strict Zero-Score)
-                    </p>
                   </div>
                 </div>
 
@@ -2220,13 +2168,6 @@ export const App: React.FC = () => {
                       <span className="text-[10px] text-ink-faint block">Sub-division Marks</span>
                     </div>
                   </div>
-
-                  {/* Summary Narrative */}
-                  {report.mark_distribution.summary && (
-                    <div className="p-3 rounded-xl bg-surface-subtle border border-line text-xs text-ink-muted">
-                      <p className="font-mono text-[11px]">{report.mark_distribution.summary}</p>
-                    </div>
-                  )}
 
                   {/* Human Scrutiny Review Panel */}
                   {report.mark_distribution.requires_human_review && (
@@ -2401,15 +2342,9 @@ export const App: React.FC = () => {
                     <div>
                       <div className="flex items-center space-x-2">
                         <h2 className="text-sm sm:text-base font-bold text-ink tracking-wide uppercase">
-                          5) Bloom&apos;s Taxonomy
+                          Bloom&apos;s Taxonomy
                         </h2>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-muted border border-line text-ink-muted font-semibold">
-                          Criterion 5
-                        </span>
                       </div>
-                      <p className="text-xs text-ink-faint">
-                        Cognitive levels (A1–C2), either/or knowledge parity, Wh-question avoidance, and UG distribution targets
-                      </p>
                     </div>
                   </div>
 
@@ -2430,15 +2365,9 @@ export const App: React.FC = () => {
                           <span>COMPLIANT — BT APPROVED</span>
                         </>
                       ) : report.blooms_taxonomy.overall_status === "FLAG" ? (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-btn-accent" />
-                          <span>BT SCRUTINY FLAGGED</span>
-                        </>
+                        <span>BT SCRUTINY FLAGGED</span>
                       ) : (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-brand-ink" />
-                          <span>HUMAN REVIEW REQUIRED</span>
-                        </>
+                        <span>HUMAN REVIEW REQUIRED</span>
                       )}
                     </span>
                   </div>
@@ -2454,15 +2383,6 @@ export const App: React.FC = () => {
                     <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
                       {report.blooms_taxonomy.rule_bt_mentioned_count} / {report.blooms_taxonomy.total_questions} Mentioned
                     </p>
-                    <div className="text-[11px] text-ink-faint">
-                      {report.blooms_taxonomy.rule_bt_missing_count > 0 ? (
-                        <span className="text-accent-ink font-mono font-bold">⚠️ {report.blooms_taxonomy.rule_bt_missing_count} question(s) missing BT</span>
-                      ) : report.blooms_taxonomy.rule_bt_mismatch_count > 0 ? (
-                        <span className="text-accent-ink font-mono font-bold">⚠️ {report.blooms_taxonomy.rule_bt_mismatch_count} BT mismatch(es)</span>
-                      ) : (
-                        <span className="text-brand-ink font-mono font-bold">✓ All questions match declared BT</span>
-                      )}
-                    </div>
                   </div>
 
                   {/* 2. Either/Or Parity */}
@@ -2473,47 +2393,6 @@ export const App: React.FC = () => {
                     <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
                       {report.blooms_taxonomy.choice_pairs_parity.length - report.blooms_taxonomy.rule_or_parity_flag_count} / {report.blooms_taxonomy.choice_pairs_parity.length} Parity Compliant
                     </p>
-                    <div className="text-[11px] text-ink-faint">
-                      {report.blooms_taxonomy.rule_or_parity_flag_count > 0 ? (
-                        <span className="text-accent-ink font-mono font-bold">⚠️ {report.blooms_taxonomy.rule_or_parity_flag_count} pair(s) with disparity</span>
-                      ) : (
-                        <span className="text-brand-ink font-mono font-bold">✓ Same knowledge level in either/or</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 3. Avoid Wh-Questions */}
-                  <div className="p-4 rounded-xl border border-line bg-surface-subtle space-y-1.5">
-                    <span className="text-[11px] font-mono text-ink-faint uppercase tracking-wider block">
-                      3. Wh-Question Avoidance
-                    </span>
-                    <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
-                      {report.blooms_taxonomy.rule_wh_avoidance_flag_count === 0 ? "0 Flagged" : `${report.blooms_taxonomy.rule_wh_avoidance_flag_count} Flagged`}
-                    </p>
-                    <div className="text-[11px] text-ink-faint">
-                      {report.blooms_taxonomy.rule_wh_avoidance_flag_count > 0 ? (
-                        <span className="text-accent-ink font-mono font-bold">⚠️ Avoid What, Why, Which, etc.</span>
-                      ) : (
-                        <span className="text-brand-ink font-mono font-bold">✓ Action verbs used consistently</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 4. BT Spanning & UG Distribution */}
-                  <div className="p-4 rounded-xl border border-line bg-surface-subtle space-y-1.5">
-                    <span className="text-[11px] font-mono text-ink-faint uppercase tracking-wider block">
-                      4. BT Spanning & Target
-                    </span>
-                    <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
-                      {report.blooms_taxonomy.spans_all_levels ? "Spans All Levels" : "Incomplete Levels"}
-                    </p>
-                    <div className="text-[11px] text-ink-faint font-mono">
-                      {report.blooms_taxonomy.rule_distribution_status === "PASS" ? (
-                        <span className="text-brand-ink font-bold">✓ Targets met (50% / 30-35% / rem)</span>
-                      ) : (
-                        <span className="text-accent-ink font-bold">⚠️ Skewed distribution</span>
-                      )}
-                    </div>
                   </div>
                 </div>
 
@@ -2633,9 +2512,6 @@ export const App: React.FC = () => {
                         <h3 className="text-xs sm:text-sm font-bold text-ink tracking-tight">
                           &apos;Either&apos; and &apos;Or&apos; Knowledge Level Parity Audit
                         </h3>
-                        <p className="text-xs text-ink-faint">
-                          Verifies identical cognitive level across alternative options even when sub-divisions are present
-                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-ink-faint font-mono">Filter:</span>
@@ -2714,9 +2590,6 @@ export const App: React.FC = () => {
                       <h3 className="text-xs sm:text-sm font-bold text-ink tracking-tight">
                         Question-Level Bloom&apos;s Taxonomy Verification
                       </h3>
-                      <p className="text-xs text-ink-faint">
-                        Verifies declared BT tags, action verbs, cognitive levels, and open-ended Wh-question avoidance
-                      </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-xs text-ink-faint font-mono">Filter:</span>
@@ -2797,7 +2670,7 @@ export const App: React.FC = () => {
                               </td>
                               <td className="py-2.5 px-3 whitespace-nowrap font-mono text-[11px]">
                                 {q.has_wh_question ? (
-                                  <span className="text-accent-ink font-bold">⚠️ &apos;{q.wh_word_found}&apos;</span>
+                                  <span className="text-accent-ink font-bold">&apos;{q.wh_word_found}&apos;</span>
                                 ) : (
                                   <span className="text-ink-faint">✓ None</span>
                                 )}
@@ -2839,22 +2712,16 @@ export const App: React.FC = () => {
           <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-6 text-ink">
             {/* Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-track border border-brand-line text-brand-ink flex items-center justify-center font-bold shadow-sm shrink-0">
-                  <SpellCheck className="w-5 h-5 text-brand-ink" />
-                </div>
+              <div className="flex items-center space-x-2.5">
+                <span className="px-2.5 py-0.5 rounded-lg bg-track border border-brand-line text-brand-ink font-mono font-bold text-xs">
+                  6
+                </span>
                 <div>
                   <div className="flex items-center space-x-2">
                     <h2 className="text-base sm:text-lg font-bold text-ink tracking-tight">
-                      6. Grammar, Spelling & Sentence Formation
+                      Grammar, Spelling & Sentence Formation
                     </h2>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-muted border border-line text-ink-muted font-semibold">
-                      Criterion 6
-                    </span>
                   </div>
-                  <p className="text-xs text-ink-faint">
-                    Linguistic scrutiny validating spelling, subject-verb agreement, tense, sentence construction, clarity, ambiguity, and technical preservation
-                  </p>
                 </div>
               </div>
 
@@ -2875,15 +2742,9 @@ export const App: React.FC = () => {
                       <span>COMPLIANT — LINGUISTICALLY SOUND</span>
                     </>
                   ) : report.grammar_check.overall_status === "FLAG" ? (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-btn-accent" />
-                      <span>LINGUISTIC ISSUES FLAGGED</span>
-                    </>
+                    <span>LINGUISTIC ISSUES FLAGGED</span>
                   ) : (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-brand-ink" />
-                      <span>HUMAN REVIEW REQUIRED</span>
-                    </>
+                    <span>HUMAN REVIEW REQUIRED</span>
                   )}
                 </span>
               </div>
@@ -2899,13 +2760,6 @@ export const App: React.FC = () => {
                 <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
                   {report.grammar_check.overall_status}
                 </p>
-                <div className="text-[11px] text-ink-faint">
-                  {report.grammar_check.overall_status === "PASS"
-                    ? "Passes institutional linguistic standards"
-                    : report.grammar_check.overall_status === "FLAG"
-                    ? "One or more linguistic errors identified"
-                    : "Ambiguous phrasing requires faculty review"}
-                </div>
               </div>
 
               {/* 2. Questions Examined */}
@@ -2916,9 +2770,6 @@ export const App: React.FC = () => {
                 <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
                   {report.grammar_check.total_questions_examined} Questions
                 </p>
-                <div className="text-[11px] text-ink-faint">
-                  {report.grammar_check.clean_questions_count} clean questions (zero errors)
-                </div>
               </div>
 
               {/* 3. Questions Flagged */}
@@ -2929,43 +2780,15 @@ export const App: React.FC = () => {
                 <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
                   {report.grammar_check.questions_with_issues_count} Flagged
                 </p>
-                <div className="text-[11px] text-ink-faint">
-                  {report.grammar_check.questions_with_issues_count === 0 ? (
-                    <span className="text-brand-ink font-bold">✓ No questions require grammar edits</span>
-                  ) : (
-                    <span className="text-accent-ink font-mono font-bold">
-                      ⚠️ {report.grammar_check.questions_with_issues_count} question(s) need review
-                    </span>
-                  )}
-                </div>
               </div>
 
-              {/* 4. Total Issues Found */}
-              <div className="p-4 rounded-xl border border-line bg-surface-subtle space-y-1.5">
-                <span className="text-[11px] font-mono text-ink-faint uppercase tracking-wider block">
-                  4. Total Issues Found
-                </span>
-                <p className="text-lg sm:text-xl font-bold font-mono text-ink tracking-tight">
-                  {(Object.values(report.grammar_check.issues_by_category || {}) as number[]).reduce(
-                    (a: number, b: number) => a + Number(b || 0),
-                    0
-                  )}{" "}
-                  Issues
-                </p>
-                <div className="text-[11px] text-ink-faint truncate">
-                  Across 7 academic linguistic categories
-                </div>
-              </div>
             </div>
 
             {/* Error Breakdown By Category Chips */}
             <div className="p-4 rounded-xl border border-line bg-surface-subtle space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold uppercase tracking-wider text-ink-muted">
-                  Category Breakdown & Technical Safeguards
-                </span>
-                <span className="text-[11px] font-mono text-ink-faint">
-                  Click category to filter
+                  Filters
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -3011,9 +2834,6 @@ export const App: React.FC = () => {
                   );
                 })}
               </div>
-              <div className="text-[11px] text-ink-faint pt-1">
-                Technical keywords, algorithm names, scientific notations, variable identifiers, and formulas are whitelisted and preserved.
-              </div>
             </div>
 
             {/* Question-Level Grammar Scrutiny Audit */}
@@ -3023,9 +2843,6 @@ export const App: React.FC = () => {
                   <h3 className="text-xs sm:text-sm font-bold text-ink tracking-tight">
                     Question-by-Question Linguistic & Grammatical Audit
                   </h3>
-                  <p className="text-xs text-ink-faint">
-                    Itemized findings, problematic phrases, academic explanations, and non-destructive suggested revisions
-                  </p>
                 </div>
 
                 {/* Filters */}
@@ -3169,12 +2986,6 @@ export const App: React.FC = () => {
                                     <span className="text-ink-faint font-mono">Explanation: </span>
                                     {issue.explanation}
                                   </div>
-                                  <div className="text-ink text-[11px] pt-0.5">
-                                    <span className="text-ink-faint font-mono">Suggested Fix: </span>
-                                    <span className="font-mono bg-brand-surface text-brand-ink px-1.5 py-0.5 rounded border border-brand-line font-bold">
-                                      {issue.suggested_correction}
-                                    </span>
-                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -3192,9 +3003,6 @@ export const App: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted font-semibold">
                                 Suggested Revision (For Faculty Approval):
-                              </span>
-                              <span className="text-[10px] font-mono text-ink-faint">
-                                Non-destructive recommendation
                               </span>
                             </div>
                             <div className="p-3 rounded-lg bg-brand-surface border border-brand-line text-ink text-xs font-serif leading-relaxed">
@@ -3612,22 +3420,16 @@ export const App: React.FC = () => {
                 <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-6 text-ink">
                   {/* Section Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-track border border-brand-line text-brand-ink flex items-center justify-center font-bold shadow-sm shrink-0">
-                        <Repeat className="w-5 h-5 text-brand-ink" />
-                      </div>
+                    <div className="flex items-center space-x-2.5">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-track border border-brand-line text-brand-ink font-mono font-bold text-xs">
+                        7
+                      </span>
                       <div>
                         <div className="flex items-center space-x-2">
                           <h2 className="text-base sm:text-lg font-bold text-ink tracking-tight">
-                            9. Repetition Risk Analysis
+                            Repetition Risk Analysis
                           </h2>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-muted border border-line text-ink-muted font-semibold">
-                            Criterion 9
-                          </span>
                         </div>
-                        <p className="text-xs text-ink-muted">
-                          Identifies duplicate or substantially similar questions within the paper and across previous-year papers
-                        </p>
                       </div>
                     </div>
 
@@ -3652,20 +3454,8 @@ export const App: React.FC = () => {
                             <AlertTriangle className="w-3.5 h-3.5" />
                             <span>REPETITION RISK FLAGGED</span>
                           </>
-                        ) : (
-                          <>
-                            <AlertTriangle className="w-3.5 h-3.5 text-brand-ink" />
-                            <span>HUMAN REVIEW REQUIRED</span>
-                          </>
-                        )}
+                        ) : <span>HUMAN REVIEW REQUIRED</span>}
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Summary Banner */}
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl border border-line bg-surface-subtle text-xs sm:text-sm text-ink leading-relaxed font-normal">
-                      <p>{report.repetition_risk.summary}</p>
                     </div>
                   </div>
 
@@ -3754,7 +3544,15 @@ export const App: React.FC = () => {
                     </div>
 
                     <div className="rounded-xl border border-line bg-surface overflow-x-auto shadow-sm">
-                      <table className="w-full text-xs text-left border-collapse">
+                      <table className="w-full min-w-[760px] table-fixed text-xs text-left border-collapse">
+                        <colgroup>
+                          <col className="w-[92px]" />
+                          <col className="w-[92px]" />
+                          <col className="w-[76px]" />
+                          <col className="w-[142px]" />
+                          <col className="w-[148px]" />
+                          <col />
+                        </colgroup>
                         <thead>
                           <tr className="border-b border-line bg-surface-muted font-mono text-ink-muted uppercase text-[10px]">
                             <th className="py-2.5 px-3">Question</th>
@@ -3783,7 +3581,7 @@ export const App: React.FC = () => {
                                     <td className="py-3 px-3 font-mono font-bold text-ink">
                                       {item.question_id}
                                     </td>
-                                    <td className="py-3 px-2.5 text-center font-mono text-ink-muted">
+                                    <td className="py-3 px-2.5 text-center font-mono text-ink-muted whitespace-nowrap">
                                       {item.section || "—"}
                                     </td>
                                     <td className="py-3 px-2.5 text-center font-mono">
@@ -3830,7 +3628,7 @@ export const App: React.FC = () => {
                                     </td>
                                     <td className="py-3 px-3 text-left">
                                       <p className="text-[11px] text-ink leading-relaxed">
-                                        {item.reason}
+                                        {item.repetition_type === "NONE" ? "Unique question Statement" : item.reason}
                                       </p>
                                       {hasMatches && (
                                         <button
