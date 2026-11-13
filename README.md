@@ -4,7 +4,7 @@ A clean, production-grade full-stack boilerplate initialized with all requested 
 
 ---
 
-## 🛠️ Verified Technology Stack
+## Verified Technology Stack
 
 | Layer | Technologies & Tools | Status |
 | :--- | :--- | :--- |
@@ -26,7 +26,7 @@ A clean, production-grade full-stack boilerplate initialized with all requested 
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 final/
@@ -78,7 +78,7 @@ final/
 
 ---
 
-## 🚀 Quickstart Commands
+## Quickstart Commands
 
 ### 1. Start Database & Local Ollama (Docker)
 ```bash
