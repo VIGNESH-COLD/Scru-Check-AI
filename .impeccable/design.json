@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T09:47:00Z",
+  "title": "Design System: ScruCheckAI",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Imperial Institutional Teal",
+        "canonical": "#0d6b5c",
+        "tonalRamp": [
+          "#041410",
+          "#08312a",
+          "#0d6b5c",
+          "#148f7b",
+          "#2dd4bf",
+          "#5eead4",
+          "#b9ddd4",
+          "#f0f9f6"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Scholarly Gold / Academic Amber",
+        "canonical": "#ea8c00",
+        "tonalRamp": [
+          "#1a0f00",
+          "#4a2700",
+          "#9a4e00",
+          "#d47f00",
+          "#ea8c00",
+          "#f59e0b",
+          "#fde68a",
+          "#fffbeb"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Mint Paper Canvas",
+        "canonical": "#eef4f1",
+        "tonalRamp": [
+          "#061512",
+          "#0c201c",
+          "#102924",
+          "#163832",
+          "#dbe7e2",
+          "#e2ede8",
+          "#eef4f1",
+          "#ffffff"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Crisp Card Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0c201c",
+          "#15342e",
+          "#1c453d",
+          "#4b5563",
+          "#94b9b0",
+          "#e6ede9",
+          "#f9fbfa",
+          "#ffffff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Deep Ink",
+        "canonical": "#111827",
+        "tonalRamp": [
+          "#111827",
+          "#1f2937",
+          "#374151",
+          "#4b5563",
+          "#6b7280",
+          "#9ca3af",
+          "#e5e7eb",
+          "#f9fafb"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Metric",
+        "purpose": "Major numerical totals, maximum marks, and overall percentage scores."
+      },
+      "headline": {
+        "displayName": "Section Headline",
+        "purpose": "Primary section dividers, page title, and key verdict headers."
+      },
+      "title": {
+        "displayName": "Card & Component Title",
+        "purpose": "Card titles, pattern names, and criteria module labels."
+      },
+      "body": {
+        "displayName": "Standard Body",
+        "purpose": "Regulatory notes, instructional descriptions, and feedback text."
+      },
+      "label": {
+        "displayName": "Tabular Code & Status",
+        "purpose": "Status pills, marks breakdown formulas, question numbers, and regulation codes in monospace."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-rest",
+        "value": "0 1px 3px rgba(0, 0, 0, 0.04)",
+        "purpose": "Subtle baseline separation for white cards resting upon mint paper canvas."
+      },
+      {
+        "name": "action-banner-lift",
+        "value": "0 4px 12px rgba(0, 0, 0, 0.08)",
+        "purpose": "Tactile presence under primary action strips and modals."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Standard easing for state transitions and hover responses."
+      },
+      {
+        "name": "button-press",
+        "value": "scale(0.98)",
+        "purpose": "Micro-compression feedback on button activation."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Brand Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standard institutional action button for uploads and primary operations.",
+      "html": "<button class=\"ds-btn-primary\">Upload</button>",
+      "css": ".ds-btn-primary { background: #0d6b5c; color: #ffffff; padding: 10px 20px; border-radius: 12px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s, transform 0.15s; } .ds-btn-primary:hover { background: #0b594d; } .ds-btn-primary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Catalyst Action Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "High-urgency primary action button reserved for initiating question paper scrutiny.",
+      "html": "<button class=\"ds-btn-accent\">Check Question Paper</button>",
+      "css": ".ds-btn-accent { background: #ea8c00; color: #0f172a; padding: 14px 24px; border-radius: 12px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(234, 140, 0, 0.25); transition: background 0.2s, transform 0.15s; } .ds-btn-accent:hover { background: #d47f00; } .ds-btn-accent:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Segmented Control Tab",
+      "kind": "nav",
+      "refersTo": "segmented-control",
+      "description": "Tab capsule selector for switching between examination pattern models.",
+      "html": "<div class=\"ds-seg-track\"><button class=\"ds-seg-btn ds-seg-active\">CAT-1</button><button class=\"ds-seg-btn\">CAT-2</button><button class=\"ds-seg-btn\">CAT-3</button><button class=\"ds-seg-btn\">University</button></div>",
+      "css": ".ds-seg-track { background: #e2ede8; padding: 6px; border-radius: 16px; display: inline-flex; gap: 6px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-seg-btn { background: transparent; border: none; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; transition: all 0.2s; } .ds-seg-btn.ds-seg-active { background: #0d6b5c; color: #ffffff; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }"
+    },
+    {
+      "name": "Pattern Selection Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Interactive card representing an examination pattern with integrated mark breakdown spectrum.",
+      "html": "<div class=\"ds-card ds-card-selected\"><div class=\"ds-card-header\"><span class=\"ds-badge-selected\">Selected</span><span class=\"ds-meta-code\">10×2, 2×15</span></div><h3 class=\"ds-card-title\">CAT-1 (Unit I & II) – Standard</h3><div class=\"ds-marks\"><span class=\"ds-marks-val\">50</span> <span class=\"ds-marks-unit\">marks</span></div><div class=\"ds-bar\"><div class=\"ds-bar-part-a\"></div><div class=\"ds-bar-part-b\"></div></div></div>",
+      "css": ".ds-card { background: #ffffff; border: 1px solid #dbe7e2; border-radius: 16px; padding: 24px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-card.ds-card-selected { border: 2px solid #0d6b5c; box-shadow: 0 0 0 1px #b9ddd4; } .ds-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; } .ds-badge-selected { background: #0d6b5c; color: #ffffff; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; } .ds-meta-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6b7280; } .ds-card-title { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 8px 0; } .ds-marks-val { font-size: 36px; font-weight: 800; color: #111827; } .ds-marks-unit { font-size: 14px; color: #6b7280; } .ds-bar { height: 10px; width: 100%; border-radius: 9999px; overflow: hidden; display: flex; margin-top: 16px; background: #f0f5f3; } .ds-bar-part-a { width: 40%; background: #0d6b5c; } .ds-bar-part-b { width: 60%; background: #ea8c00; }"
+    },
+    {
+      "name": "Upload Drop Area",
+      "kind": "custom",
+      "refersTo": "dropzone",
+      "description": "Tactile drop target for syllabus and question paper documents.",
+      "html": "<div class=\"ds-dropzone\"><div class=\"ds-drop-icon\">↑</div><span class=\"ds-drop-label\">Drop file here</span><button class=\"ds-btn-primary\">Upload</button></div>",
+      "css": ".ds-dropzone { border: 2px dashed #b9ddd4; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; min-height: 140px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; gap: 8px; } .ds-drop-icon { font-size: 20px; color: #0d6b5c; font-weight: bold; } .ds-drop-label { font-size: 12px; color: #6b7280; font-weight: 500; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Academic Sanctuary",
+    "overview": "ScruCheckAI is an authoritative, serene, and disciplined examination studio designed for educators and scrutiny committees. Rather than imposing the sterile tension of an audit or the chaotic noise of consumer AI tools, the interface provides a calm, focused environment that balances institutional prestige with modern technological clarity. It gives faculty the confidence of working within an official academic council chamber while delivering instantaneous, actionable scrutiny and automated remediation.",
+    "keyCharacteristics": [
+      "Sovereign Color Anchor: Imperial Institutional Teal provides grounding authority, while Academic Amber drives intentional forward progress.",
+      "Tonal Layering: Spatial depth is established by surface contrast and whispering 1px borders rather than heavy drop-shadows.",
+      "Mathematical Typography Pairing: Warm geometric sans (Plus Jakarta Sans) paired with tabular monospace (JetBrains Mono) for examination metrics.",
+      "Bimodal Harmony: Seamless transitions between high-legibility Mint Paper Light mode and low-glare Abyssal Teal Dark mode."
+    ],
+    "rules": [
+      {
+        "name": "The Amber Action Rule",
+        "body": "Amber is strictly reserved for primary forward-momentum triggers (e.g., 'Check Question Paper', syllabus attachment) and Part B balance indicators. It must never be applied to passive chrome, generic cards, or decorative borders.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rarity Rule",
+        "body": "High-saturation brand colors occupy less than 15% of the viewport at rest. The interface lets clean white/charcoal document surfaces and clear typography dominate.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Precision Rule",
+        "body": "Every numeric calculation, question identifier, mark breakdown formula, and regulation year must render in JetBrains Mono with tabular figure spacing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-at-Rest Rule",
+        "body": "All surfaces and cards remain flat at rest. Elevation changes occur only dynamically as an active response to user input.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do maintain the 100% strict requirement that scrutiny reports export only as PDF (.pdf).",
+      "Do pair every status indicator with explicit textual labels and icons to ensure full accessibility for color-blind faculty.",
+      "Do preserve academic, mathematical, and algorithmic vocabulary without triggering grammar or spelling defect warnings.",
+      "Do keep the 'Check Question Paper' catalyst button solid amber with bold dark text (text-slate-900) for maximum legibility.",
+      "Do ensure all numerical marks, timestamps, and question identifiers render in JetBrains Mono."
+    ],
+    "donts": [
+      "Don't use amber for general decorative backgrounds, borders, or non-action elements.",
+      "Don't add numerical percentage scores to qualitative linguistic or clarity evaluations; use strict categorical indicators.",
+      "Don't add format-selection dropdowns (Word, HTML, CSV) to the report export module.",
+      "Don't introduce heavy multi-layered drop shadows; preserve the clean, calm tonal layering.",
+      "Don't allow arbitrary color splits in question mark distribution bars; Part A is always Teal, Part B is always Amber."
+    ]
+  }
+}
