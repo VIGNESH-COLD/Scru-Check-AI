@@ -54,6 +54,7 @@ if __name__ == "__main__":
     gradio_app, _, _ = demo.launch(
         server_name="0.0.0.0",
         server_port=port,
+        ssr_mode=False,
         prevent_thread_lock=True,
     )
     gradio_app.router.routes.insert(
