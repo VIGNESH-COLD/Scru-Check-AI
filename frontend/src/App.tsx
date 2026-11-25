@@ -240,8 +240,12 @@ export const App: React.FC = () => {
   );
   const [file, setFile] = useState<File | null>(null);
   const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
+  const [isReadingQp, setIsReadingQp] = useState<boolean>(false);
+  const [isReadingSyllabus, setIsReadingSyllabus] = useState<boolean>(false);
   const [isDraggingQp, setIsDraggingQp] = useState<boolean>(false);
   const [isDraggingSyllabus, setIsDraggingSyllabus] = useState<boolean>(false);
+  const qpReadTokenRef = useRef<number>(0);
+  const syllabusReadTokenRef = useRef<number>(0);
   const activeRequestAbortRef = useRef<AbortController | null>(null);
   const activeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -318,6 +322,10 @@ export const App: React.FC = () => {
   };
 
   const handleResetScrutiny = () => {
+    qpReadTokenRef.current += 1;
+    syllabusReadTokenRef.current += 1;
+    setIsReadingQp(false);
+    setIsReadingSyllabus(false);
     setReport(null);
     setError(null);
     setFile(null);
@@ -534,35 +542,76 @@ export const App: React.FC = () => {
     if (![".pdf", ".docx"].includes(ext)) {
       return `Security Policy Violation: File format '${ext || "unknown"}' is not permitted. Only PDF (.pdf) and Word (.docx) documents are allowed. Formats like PNG, JPG, TXT, DOC, and ZIP are strictly rejected.`;
     }
-    if (selected.size === 0) {
-      return "The selected file is empty (0 bytes). Please select a valid document.";
-    }
     if (selected.size > 25 * 1024 * 1024) {
       return "The selected file exceeds the maximum permitted limit of 25MB.";
     }
     return null;
   };
 
-  const handleQpFileSelected = (selected: File): boolean => {
+  /**
+   * Read the selected file into an in-memory File immediately on selection.
+   * This prevents Android Chrome from failing later with "Failed to fetch" when
+   * temporary content:// URIs from cloud providers (e.g., Google Drive) expire.
+   */
+  const bufferSelectedFile = async (selected: File): Promise<File> => {
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await selected.arrayBuffer();
+    } catch {
+      throw new Error(
+        `Could not read '${selected.name}' from cloud storage (such as Google Drive). Please ensure the file is available offline or save it to your device Downloads folder and try again.`
+      );
+    }
+    if (buffer.byteLength === 0) {
+      throw new Error("The selected file is empty (0 bytes). Please select a valid document.");
+    }
+    if (buffer.byteLength > 25 * 1024 * 1024) {
+      throw new Error("The selected file exceeds the maximum permitted limit of 25MB.");
+    }
+    return new File([buffer], selected.name, {
+      type: selected.type || "application/octet-stream",
+      lastModified: selected.lastModified || Date.now(),
+    });
+  };
+
+  const handleQpFileSelected = async (selected: File, inputEl?: HTMLInputElement): Promise<boolean> => {
     const validationError = validateSelectedFile(selected);
     if (validationError) {
       setError(validationError);
       setFile(null);
+      if (inputEl) inputEl.value = "";
       return false;
     }
-    setFile(selected);
+
+    const token = ++qpReadTokenRef.current;
+    setIsReadingQp(true);
     setError(null);
     setReport(null);
     setPdfDownloadError(null);
     setPdfDownloadSuccess(null);
     setShowExtractedModal(false);
-    return true;
+
+    try {
+      const buffered = await bufferSelectedFile(selected);
+      if (qpReadTokenRef.current !== token) return false;
+      setFile(buffered);
+      return true;
+    } catch (err: any) {
+      if (qpReadTokenRef.current !== token) return false;
+      setFile(null);
+      setError(err?.message || "Failed to read the selected question paper file.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    } finally {
+      if (qpReadTokenRef.current === token) {
+        setIsReadingQp(false);
+      }
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const ok = handleQpFileSelected(e.target.files[0]);
-      if (!ok) e.target.value = "";
+      void handleQpFileSelected(e.target.files[0], e.target);
     }
   };
 
@@ -571,7 +620,7 @@ export const App: React.FC = () => {
     e.stopPropagation();
     setIsDraggingQp(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleQpFileSelected(e.dataTransfer.files[0]);
+      void handleQpFileSelected(e.dataTransfer.files[0]);
     }
   };
 
@@ -580,6 +629,8 @@ export const App: React.FC = () => {
       e.stopPropagation();
       e.preventDefault();
     }
+    qpReadTokenRef.current += 1;
+    setIsReadingQp(false);
     setFile(null);
     setReport(null);
     setPdfDownloadError(null);
@@ -588,22 +639,40 @@ export const App: React.FC = () => {
     if (input) input.value = "";
   };
 
-  const handleSyllabusFileSelected = (selected: File): boolean => {
+  const handleSyllabusFileSelected = async (selected: File, inputEl?: HTMLInputElement): Promise<boolean> => {
     const validationError = validateSelectedFile(selected);
     if (validationError) {
       setError(validationError);
       setSyllabusFile(null);
+      if (inputEl) inputEl.value = "";
       return false;
     }
-    setSyllabusFile(selected);
+
+    const token = ++syllabusReadTokenRef.current;
+    setIsReadingSyllabus(true);
     setError(null);
-    return true;
+
+    try {
+      const buffered = await bufferSelectedFile(selected);
+      if (syllabusReadTokenRef.current !== token) return false;
+      setSyllabusFile(buffered);
+      return true;
+    } catch (err: any) {
+      if (syllabusReadTokenRef.current !== token) return false;
+      setSyllabusFile(null);
+      setError(err?.message || "Failed to read the selected syllabus file.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    } finally {
+      if (syllabusReadTokenRef.current === token) {
+        setIsReadingSyllabus(false);
+      }
+    }
   };
 
   const handleSyllabusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const ok = handleSyllabusFileSelected(e.target.files[0]);
-      if (!ok) e.target.value = "";
+      void handleSyllabusFileSelected(e.target.files[0], e.target);
     }
   };
 
@@ -612,7 +681,7 @@ export const App: React.FC = () => {
     e.stopPropagation();
     setIsDraggingSyllabus(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleSyllabusFileSelected(e.dataTransfer.files[0]);
+      void handleSyllabusFileSelected(e.dataTransfer.files[0]);
     }
   };
 
@@ -621,6 +690,8 @@ export const App: React.FC = () => {
       e.stopPropagation();
       e.preventDefault();
     }
+    syllabusReadTokenRef.current += 1;
+    setIsReadingSyllabus(false);
     setSyllabusFile(null);
     const input = document.getElementById("syllabus-upload") as HTMLInputElement;
     if (input) input.value = "";
@@ -709,10 +780,13 @@ export const App: React.FC = () => {
       clearInterval(timerInterval);
       activeTimerRef.current = null;
       const isTimeout = err?.name === "AbortError";
+      const isNetworkDrop = err?.message === "Failed to fetch";
       setError(
         isTimeout
           ? "Scrutiny request timed out after 3 minutes. Please verify the backend is running and try again."
-          : err?.message || "Failed to process question paper with scrutiny backend."
+          : isNetworkDrop
+            ? "Network error while uploading or waiting for the scrutiny server. Keep this tab open and check your connection, then try again."
+            : err?.message || "Failed to process question paper with scrutiny backend."
       );
       setIsLoading(false);
       setProgress(0);
@@ -1304,7 +1378,7 @@ export const App: React.FC = () => {
             <input
               type="file"
               id="file-upload"
-              accept=".pdf,.docx"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFileChange}
               className="hidden"
             />
@@ -1314,7 +1388,15 @@ export const App: React.FC = () => {
             </div>
 
             <div className="my-auto py-2 text-center">
-              {file ? (
+              {isReadingQp ? (
+                <div className="space-y-1.5 px-2">
+                  <div className="flex items-center justify-center space-x-2 text-xs font-semibold text-brand-ink">
+                    <span className="w-3.5 h-3.5 border-2 border-brand/30 border-t-brand rounded-full animate-spin" />
+                    <span>Loading file...</span>
+                  </div>
+                  <span className="text-[11px] text-ink-faint block font-mono">Reading document into memory</span>
+                </div>
+              ) : file ? (
                 <div className="space-y-1 max-w-full px-2">
                   <div className="flex items-center justify-center space-x-1.5 text-xs font-semibold text-brand-ink truncate">
                     <CheckCircle2 className="w-4 h-4 shrink-0 text-brand-ink animate-check-pop" />
@@ -1380,7 +1462,7 @@ export const App: React.FC = () => {
             <input
               type="file"
               id="syllabus-upload"
-              accept=".pdf,.docx"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleSyllabusChange}
               className="hidden"
             />
@@ -1390,7 +1472,15 @@ export const App: React.FC = () => {
             </div>
 
             <div className="my-auto py-2 text-center">
-              {syllabusFile ? (
+              {isReadingSyllabus ? (
+                <div className="space-y-1.5 px-2">
+                  <div className="flex items-center justify-center space-x-2 text-xs font-semibold text-accent-ink">
+                    <span className="w-3.5 h-3.5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                    <span>Loading file...</span>
+                  </div>
+                  <span className="text-[11px] text-ink-faint block font-mono">Reading document into memory</span>
+                </div>
+              ) : syllabusFile ? (
                 <div className="space-y-1 max-w-full px-2">
                   <div className="flex items-center justify-center space-x-1.5 text-xs font-semibold text-accent-ink truncate">
                     <CheckCircle2 className="w-4 h-4 shrink-0 text-accent-ink animate-check-pop" />
@@ -1485,7 +1575,7 @@ export const App: React.FC = () => {
           <button
             type="button"
             onClick={handleCheckCompliance}
-            disabled={isLoading || !file}
+            disabled={isLoading || isReadingQp || isReadingSyllabus || !file}
             className="px-8 py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-extrabold text-xs sm:text-sm tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-150 whitespace-nowrap cursor-pointer flex items-center justify-center space-x-2 border border-accent-line focus-visible:ring-2 focus-visible:ring-accent"
           >
             {isLoading ? (
