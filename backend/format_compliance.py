@@ -100,7 +100,11 @@ class FormatComplianceReport(BaseModel):
     )
     approval_status: str = Field(description="'APPROVED' or 'BLOCKED'")
     compliance_score: float = Field(
-        description="Percentage score based on compliant mandatory items"
+        description="Unified weighted percentage score across all evaluated scrutiny criteria"
+    )
+    score_breakdown: dict[str, dict[str, float | int | str]] = Field(
+        default_factory=dict,
+        description="Per-criterion weight and contribution to the unified scrutiny score",
     )
     selected_pattern_name: str
     selected_category: str
@@ -1234,3 +1238,104 @@ class FormatComplianceChecker:
 
 
 checker = FormatComplianceChecker()
+
+
+def compute_unified_scrutiny_score(
+    report: FormatComplianceReport,
+) -> tuple[float, dict[str, dict[str, float | int | str]]]:
+    """Compute a unified 100-point weighted score across all 7 scrutiny criteria."""
+    breakdown: dict[str, dict[str, float | int | str]] = {}
+    weighted_sum = 0.0
+    active_weight = 0.0
+
+    def _add_criterion(
+        key: str,
+        label: str,
+        weight: float,
+        passed: float,
+        total: float,
+    ) -> None:
+        nonlocal weighted_sum, active_weight
+        if total <= 0:
+            return
+        ratio = max(0.0, min(1.0, passed / total))
+        earned = round(weight * ratio, 2)
+        weighted_sum += earned
+        active_weight += weight
+        breakdown[key] = {
+            "label": label,
+            "weight": weight,
+            "earned": earned,
+            "ratio_pct": round(ratio * 100, 1),
+        }
+
+    # 1. Format Compliance (15%)
+    header_vals = list((report.header_checks or {}).values())
+    fmt_total = len(header_vals) + 3
+    fmt_pass = (
+        sum(1 for h in header_vals if getattr(h, "found", False))
+        + (1 if report.pattern_compliance.marks_match else 0)
+        + (1 if report.pattern_compliance.duration_match else 0)
+        + (1 if report.pattern_compliance.sections_match else 0)
+    )
+    _add_criterion("format", "Format Compliance", 15.0, fmt_pass, fmt_total)
+
+    # 2. Mandatory Exam Details (10%)
+    if report.exam_details and report.exam_details.items:
+        det_items = list(report.exam_details.items.values())
+        det_pass = sum(1 for item in det_items if getattr(item, "found", False))
+        _add_criterion("details", "Mandatory Exam Details", 10.0, det_pass, len(det_items))
+
+    # 3. Syllabus Alignment (20%)
+    if report.syllabus_alignment is not None:
+        syl_total = report.syllabus_alignment.total_questions or len(report.syllabus_alignment.results or [])
+        syl_pass = report.syllabus_alignment.aligned_count or 0
+        _add_criterion("syllabus", "Syllabus Alignment", 20.0, syl_pass, syl_total)
+
+    # 4. Mark & Time Distribution (15%)
+    if report.mark_distribution is not None:
+        md_total = report.mark_distribution.total_questions_evaluated or len(report.mark_distribution.evaluations or [])
+        md_pass = report.mark_distribution.pass_count or 0
+        _add_criterion("marks", "Mark & Time Distribution", 15.0, md_pass, md_total)
+
+    # 5. Bloom's Taxonomy (15%): 50% question BT, 25% OR-parity, 25% UG target distribution
+    if report.blooms_taxonomy is not None:
+        bt = report.blooms_taxonomy
+        bt_qs = bt.questions or []
+        q_ratio = (
+            sum(1 for q in bt_qs if str(getattr(q, "overall_status", "")).upper().endswith("PASS")) / len(bt_qs)
+            if bt_qs
+            else 0.0
+        )
+        pairs = bt.choice_pairs_parity or []
+        parity_ratio = (
+            max(0, len(pairs) - (bt.rule_or_parity_flag_count or 0)) / len(pairs)
+            if pairs
+            else 1.0
+        )
+        slices = bt.distribution_slices or []
+        slice_ratio = (
+            sum(1 for s in slices if str(getattr(s, "status", "")).upper().endswith("PASS")) / len(slices)
+            if slices
+            else 1.0
+        )
+        bt_composite = 0.50 * q_ratio + 0.25 * parity_ratio + 0.25 * slice_ratio
+        _add_criterion("blooms", "Bloom's Taxonomy", 15.0, bt_composite * 100.0, 100.0)
+
+    # 6. Grammar & Clarity (15%)
+    if report.grammar_check is not None:
+        gr_total = report.grammar_check.total_questions_examined or len(report.grammar_check.questions or [])
+        gr_pass = report.grammar_check.clean_questions_count or 0
+        _add_criterion("grammar", "Grammar & Clarity", 15.0, gr_pass, gr_total)
+
+    # 7. Repetition Risk (10%)
+    if report.repetition_risk is not None:
+        rep_total = report.repetition_risk.total_questions_evaluated or len(report.repetition_risk.evaluations or [])
+        rep_pass = report.repetition_risk.pass_count or 0
+        _add_criterion("repetition", "Repetition Risk", 10.0, rep_pass, rep_total)
+
+    if active_weight <= 0:
+        return report.compliance_score, breakdown
+
+    unified_score = round((weighted_sum / active_weight) * 100.0, 2)
+    return unified_score, breakdown

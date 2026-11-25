@@ -50,7 +50,7 @@ from app.services.syllabus_retriever import (
 )
 from app.services.text_extractor import extractor
 from app.services.vector_store import get_syllabus_vector_store
-from format_compliance import FormatComplianceReport, checker
+from format_compliance import FormatComplianceReport, checker, compute_unified_scrutiny_score
 from regulation import RegulationCheckResult, check_regulation
 
 # Configure root logging to output INFO to stdout so uvicorn terminal shows scrutiny logs
@@ -155,8 +155,8 @@ async def get_exam_patterns():
 @app.post("/api/v1/scrutiny/check-format", response_model=FormatComplianceReport)
 async def check_question_paper_format(
     file: UploadFile = File(..., description="Question paper document (PDF or DOCX only)"),
-    syllabus_file: UploadFile | None = File(
-        None, description="Optional syllabus document (PDF or DOCX only)"
+    syllabus_file: UploadFile = File(
+        ..., description="Required syllabus document (PDF or DOCX only)"
     ),
     exam_type: str | None = Form(
         None, description="Category, e.g. 'CAT-1', 'CAT-2', 'CAT-3', 'University'"
@@ -170,13 +170,17 @@ async def check_question_paper_format(
 ):
     """Check uploaded question paper for strict institutional format compliance
     and pattern matching based on user-selected exam pattern. Strictly accepts ONLY PDF and DOCX.
-    Optionally processes syllabus for syllabus coverage and question mapping.
+    Requires both a question paper and a syllabus document.
     """
+    if not syllabus_file or not syllabus_file.filename:
+        raise HTTPException(
+            status_code=422,
+            detail="Both question paper and syllabus files are required to start scrutiny.",
+        )
+
     llm_service.reset_run_log()
     validated_qp = await file_validator.validate_upload(file, is_syllabus=False)
-    validated_s: ValidatedUpload | None = None
-    if syllabus_file and syllabus_file.filename:
-        validated_s = await file_validator.validate_upload(syllabus_file, is_syllabus=True)
+    validated_s: ValidatedUpload = await file_validator.validate_upload(syllabus_file, is_syllabus=True)
 
     try:
         extraction_result = await run_in_threadpool(extractor.extract, validated_qp.temp_path)
@@ -302,6 +306,11 @@ async def check_question_paper_format(
                 )
         except Exception as e:
             logger.warning("Criterion 6 Grammar Scrutiny encountered error: %s", e)
+
+        # Compute unified 7-criteria weighted compliance score
+        unified_score, score_breakdown = compute_unified_scrutiny_score(report)
+        report.compliance_score = unified_score
+        report.score_breakdown = score_breakdown
 
         # Record delivering LLM provider summary and display terminal report
         llm_summary = llm_service.get_run_summary()

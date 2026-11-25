@@ -711,8 +711,16 @@ export const App: React.FC = () => {
   };
 
   const handleCheckCompliance = async () => {
+    if (!file && !syllabusFile) {
+      setError("Please upload both the Question Paper and Syllabus files first.");
+      return;
+    }
     if (!file) {
-      setError("Please choose a question paper file first.");
+      setError("Please upload the Question Paper file first.");
+      return;
+    }
+    if (!syllabusFile) {
+      setError("Please upload the Syllabus file first.");
       return;
     }
 
@@ -1506,7 +1514,7 @@ export const App: React.FC = () => {
               ) : (
                 <div className="space-y-1">
                   <span className="text-xs text-ink-muted font-semibold block">Drop course syllabus here</span>
-                  <span className="text-[11px] text-ink-faint block font-mono">Unit alignment check</span>
+                  <span className="text-[11px] text-ink-faint block font-mono">Required • PDF or Word (.docx)</span>
                 </div>
               )}
             </div>
@@ -1588,7 +1596,7 @@ export const App: React.FC = () => {
           <button
             type="button"
             onClick={handleCheckCompliance}
-            disabled={isLoading || isReadingQp || isReadingSyllabus || !file}
+            disabled={isLoading || isReadingQp || isReadingSyllabus || !file || !syllabusFile}
             className="px-8 py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-extrabold text-xs sm:text-sm tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-150 whitespace-nowrap cursor-pointer flex items-center justify-center space-x-2 border border-accent-line focus-visible:ring-2 focus-visible:ring-accent"
           >
             {isLoading ? (
@@ -1937,13 +1945,18 @@ export const App: React.FC = () => {
                       const passPct = Math.round((row.pass / safeTotal) * 100);
                       const flagCount = Math.max(0, row.total - row.pass);
                       const flagPct = row.total > 0 ? 100 - passPct : 0;
+                      const weightInfo = report.score_breakdown?.[row.key];
                       return (
                         <button
                           key={row.key}
                           type="button"
                           onClick={() => handleTabClick(row.key)}
-                          className="w-full flex items-center gap-3 text-xs group cursor-pointer text-left rounded-lg px-1.5 py-1 hover:bg-surface transition-colors"
-                          title={`Jump to ${row.name}: ${row.pass} passed, ${flagCount} flagged/review`}
+                          className="w-full flex items-center gap-2.5 sm:gap-3 text-xs group cursor-pointer text-left rounded-lg px-1.5 py-1 hover:bg-surface transition-colors"
+                          title={
+                            weightInfo
+                              ? `Jump to ${row.name}: ${row.pass}/${row.total} passed (${weightInfo.earned}/${weightInfo.weight} pts)`
+                              : `Jump to ${row.name}: ${row.pass} passed, ${flagCount} flagged/review`
+                          }
                         >
                           <span className="w-20 font-semibold text-ink-muted group-hover:text-ink shrink-0 truncate">
                             {row.name}
@@ -1962,6 +1975,11 @@ export const App: React.FC = () => {
                               />
                             )}
                           </div>
+                          {weightInfo && (
+                            <span className="hidden sm:inline-block w-20 text-right font-mono text-[10px] text-ink-faint shrink-0">
+                              {weightInfo.earned}/{weightInfo.weight}%
+                            </span>
+                          )}
                           <span className="w-14 text-right font-mono tabular-nums shrink-0 text-[11px]">
                             <span className={flagCount === 0 ? "text-brand-ink font-bold" : "text-ink font-bold"}>
                               {row.pass}
