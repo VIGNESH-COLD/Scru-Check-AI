@@ -37,6 +37,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 interface PatternItem {
@@ -243,6 +246,7 @@ export const App: React.FC = () => {
   const [isDraggingSyllabus, setIsDraggingSyllabus] = useState<boolean>(false);
   const qpReadTokenRef = useRef<number>(0);
   const syllabusReadTokenRef = useRef<number>(0);
+  const criteriaNavRef = useRef<HTMLDivElement | null>(null);
   const activeRequestAbortRef = useRef<AbortController | null>(null);
   const activeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -380,6 +384,18 @@ export const App: React.FC = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [report]);
+
+  useEffect(() => {
+    const container = criteriaNavRef.current;
+    if (!container) return;
+    const activeBtn = container.querySelector<HTMLButtonElement>(
+      `[data-criteria-tab="${activeCriteriaTab}"]`
+    );
+    if (!activeBtn) return;
+    const targetLeft =
+      activeBtn.offsetLeft - container.clientWidth / 2 + activeBtn.clientWidth / 2;
+    container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+  }, [activeCriteriaTab]);
 
   const filteredResults = useMemo(() => {
     if (!report?.syllabus_alignment?.results) return [];
@@ -1205,7 +1221,7 @@ export const App: React.FC = () => {
   ] : [];
 
   return (
-    <div className="app-shell min-h-screen bg-canvas text-ink py-4 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand overflow-x-hidden">
+    <div className="app-shell min-h-screen bg-canvas text-ink py-4 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand overflow-x-clip">
       <div className="max-w-6xl mx-auto space-y-5">
         {/* Top Header Card */}
         <header className="hero-panel rounded-2xl border border-line bg-surface p-3.5 sm:px-6 sm:py-5 flex items-center justify-between gap-3">
@@ -2067,12 +2083,13 @@ export const App: React.FC = () => {
 
             {/* Sticky Criteria Navigation Rail */}
             <div className="sticky top-3 z-30 bg-surface/95 backdrop-blur-md border border-line shadow-sm rounded-2xl p-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-shadow duration-200">
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 max-w-full">
+              <div ref={criteriaNavRef} className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 max-w-full">
                 {criteriaTabs.map((tab) => {
                   const isActive = activeCriteriaTab === tab.key;
                   return (
                     <button
                       key={tab.key}
+                      data-criteria-tab={tab.key}
                       type="button"
                       onClick={() => handleTabClick(tab.key)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center space-x-1.5 cursor-pointer active:scale-95 ${isActive
@@ -2557,32 +2574,86 @@ export const App: React.FC = () => {
                               </ResponsiveContainer>
                             </div>
 
-                            {/* Coverage Distribution Progress Bars */}
+                            {/* Coverage Distribution Pie Chart */}
                             <div className="space-y-3 pt-3 border-t border-line">
                               <div className="flex items-center justify-between text-xs text-ink-faint">
                                 <span className="font-semibold text-ink-muted uppercase tracking-wider text-[10px]">Coverage Distribution</span>
                                 <span className="font-mono text-ink-faint">By unit</span>
                               </div>
 
-                              <div className="space-y-2 pt-0.5">
-                                {coverageUnitsData.map((u: any) => (
-                                  <div key={u.unit_label} className="syllabus-coverage-row flex items-center space-x-3 text-xs">
-                                    <span className="w-14 text-ink-muted font-semibold shrink-0">{u.unit_label}</span>
-                                    <div className="flex-1 h-1.5 bg-surface-muted rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full rounded-full transition-all duration-500"
-                                        style={{
-                                          width: `${Math.min(100, Math.max(u.percentage > 0 ? 3 : 0, u.percentage))}%`,
-                                          backgroundColor: chartTheme.barPrimary,
-                                        }}
-                                      />
+                              {(() => {
+                                const activePieUnits = coverageUnitsData.filter((u: any) => (u.question_count || 0) > 0);
+                                const pieInput = activePieUnits.length > 0 ? activePieUnits : coverageUnitsData;
+                                return (
+                                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 pt-1">
+                                    <div className="w-full sm:w-56 h-48 shrink-0">
+                                      <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                          <Pie
+                                            data={pieInput}
+                                            dataKey="question_count"
+                                            nameKey="unit_label"
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={42}
+                                            outerRadius={72}
+                                            paddingAngle={3}
+                                          >
+                                            {pieInput.map((_u: any, index: number) => (
+                                              <Cell
+                                                key={`unit-cell-${index}`}
+                                                fill={chartTheme.pieColors[index % chartTheme.pieColors.length]}
+                                                stroke={chartTheme.tooltipBg}
+                                                strokeWidth={2}
+                                              />
+                                            ))}
+                                          </Pie>
+                                          <Tooltip
+                                            contentStyle={{
+                                              backgroundColor: chartTheme.tooltipBg,
+                                              borderColor: chartTheme.tooltipBorder,
+                                              borderRadius: "8px",
+                                              fontSize: "11px",
+                                              color: chartTheme.tooltipText,
+                                              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                                            }}
+                                            formatter={(value: any, name: any, props: any) => [
+                                              `${value} questions (${props?.payload?.percentage ?? 0}%)`,
+                                              name,
+                                            ]}
+                                          />
+                                        </PieChart>
+                                      </ResponsiveContainer>
                                     </div>
-                                    <span className="w-16 text-right font-mono font-medium text-ink shrink-0">
-                                      {u.question_count} ({u.percentage}%)
-                                    </span>
+
+                                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                                      {coverageUnitsData.map((u: any, idx: number) => {
+                                        const activeIdx = activePieUnits.findIndex((a: any) => a.unit_label === u.unit_label);
+                                        const dotColor = activeIdx >= 0
+                                          ? chartTheme.pieColors[activeIdx % chartTheme.pieColors.length]
+                                          : chartTheme.pieColors[idx % chartTheme.pieColors.length];
+                                        return (
+                                          <div
+                                            key={u.unit_label}
+                                            className="flex items-center justify-between gap-3 py-1 border-b border-line-subtle last:border-b-0"
+                                          >
+                                            <span className="flex items-center gap-2 text-ink-muted font-semibold">
+                                              <span
+                                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                                style={{ backgroundColor: dotColor, opacity: u.question_count > 0 ? 1 : 0.3 }}
+                                              />
+                                              <span>{u.unit_label}</span>
+                                            </span>
+                                            <span className="font-mono font-medium text-ink shrink-0">
+                                              {u.question_count} ({u.percentage}%)
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
-                                ))}
-                              </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         );
@@ -3233,7 +3304,6 @@ export const App: React.FC = () => {
                               <div className="flex items-center justify-between pt-2 border-t border-line-subtle">
                                 <div>
                                   <span className="text-sm font-bold font-mono text-brand-ink">{slice.marks_percentage}%</span>
-                                  <span className="text-[11px] text-ink-faint font-mono ml-1">({slice.total_marks}M / {slice.target_percentage_str})</span>
                                 </div>
                                 <span
                                   className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full shadow-sm ${slice.status === "PASS"
