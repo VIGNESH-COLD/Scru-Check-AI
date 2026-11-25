@@ -84,18 +84,18 @@
   --color-success-ink: #0d6b5c;
 }
 
-/* DARK MODE (Requirement 4: Near-black teal background with bright teal and amber accents) */
+/* DARK MODE (True Black Obsidian with bright teal and amber accents) */
 .dark {
-  --color-canvas: #061512;
-  --color-surface: #0c201c;
-  --color-surface-subtle: #102924;
-  --color-surface-muted: #15342e;
-  --color-line: #1c453d;
-  --color-line-subtle: #163832;
-  --color-track: #0e2722;
-  --color-ink: #f0fdf9;
-  --color-ink-muted: #b4d5cc;
-  --color-ink-faint: #94b9b0;
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-subtle: #111111;
+  --color-surface-muted: #18181b;
+  --color-line: #27272a;
+  --color-line-subtle: #1f1f23;
+  --color-track: #141416;
+  --color-ink: #fafafa;
+  --color-ink-muted: #d4d4d8;
+  --color-ink-faint: #a1a1aa;
 
   /* Bright Teal Brand Accent */
   --color-brand: #2dd4bf;

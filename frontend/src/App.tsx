@@ -211,11 +211,11 @@ export const App: React.FC = () => {
   const chartTheme = useMemo(() => {
     return isDark
       ? {
-        grid: "#1c453d",
-        axisText: "#94b9b0",
-        tooltipBg: "#0c201c",
-        tooltipBorder: "#1c453d",
-        tooltipText: "#f0fdf9",
+        grid: "#27272a",
+        axisText: "#a1a1aa",
+        tooltipBg: "#0a0a0a",
+        tooltipBorder: "#27272a",
+        tooltipText: "#fafafa",
         barPrimary: "#2dd4bf", // bright teal
         barSecondary: "#f59e0b", // bright amber
         barTertiary: "#5eead4",
