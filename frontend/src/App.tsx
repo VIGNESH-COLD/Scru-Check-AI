@@ -2432,56 +2432,60 @@ export const App: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Categorical Status & Question Count Cards (Counts Only, No Scores) */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Total Items</span>
-                      <span className="text-ink font-bold text-base block mt-0.5 font-mono">
-                        {report.syllabus_alignment.total_questions}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">Assessable Qs</span>
-                    </div>
+                  {/* Compact 3-Card Syllabus Alignment Summary */}
+                  {(() => {
+                    const sa = report.syllabus_alignment;
+                    const issueParts = [
+                      sa.mismatch_count > 0 ? `Mismatch: ${sa.mismatch_count}` : null,
+                      sa.ambiguous_count > 0 ? `Ambiguous: ${sa.ambiguous_count}` : null,
+                      sa.unmapped_count > 0 ? `Unmapped: ${sa.unmapped_count}` : null,
+                      sa.review_required_count > 0 ? `Review: ${sa.review_required_count}` : null,
+                    ].filter(Boolean);
+                    const totalIssues =
+                      (sa.mismatch_count || 0) +
+                      (sa.ambiguous_count || 0) +
+                      (sa.unmapped_count || 0) +
+                      (sa.review_required_count || 0);
 
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Aligned</span>
-                      <span className="text-brand-ink font-bold text-base block mt-0.5 font-mono">
-                        {report.syllabus_alignment.aligned_count}
-                      </span>
-                      <span className="text-[10px] text-brand-ink block font-semibold">In Scope</span>
-                    </div>
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div className="p-3.5 rounded-xl border border-line bg-surface-subtle">
+                          <span className="text-ink-faint block text-[10px] uppercase font-semibold tracking-wider">
+                            Total Questions
+                          </span>
+                          <span className="text-ink font-bold text-lg sm:text-xl block mt-0.5 font-mono">
+                            {sa.total_questions}
+                          </span>
+                          <span className="text-[11px] text-ink-faint block">Assessable Qs</span>
+                        </div>
 
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Mismatch</span>
-                      <span className={`text-base font-bold block mt-0.5 font-mono ${report.syllabus_alignment.mismatch_count > 0 ? "text-accent-ink underline font-extrabold" : "text-ink-faint"}`}>
-                        {report.syllabus_alignment.mismatch_count}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">Scope Violation</span>
-                    </div>
+                        <div className="p-3.5 rounded-xl border border-line bg-surface-subtle">
+                          <span className="text-ink-faint block text-[10px] uppercase font-semibold tracking-wider">
+                            Aligned
+                          </span>
+                          <span className="text-brand-ink font-bold text-lg sm:text-xl block mt-0.5 font-mono">
+                            {sa.aligned_count}
+                          </span>
+                          <span className="text-[11px] text-brand-ink block font-semibold">In Scope</span>
+                        </div>
 
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Ambiguous</span>
-                      <span className="text-ink font-bold text-base block mt-0.5 font-mono">
-                        {report.syllabus_alignment.ambiguous_count}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">Borderline</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Unmapped</span>
-                      <span className="text-ink font-bold text-base block mt-0.5 font-mono">
-                        {report.syllabus_alignment.unmapped_count}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">Outside Syl.</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl border border-line bg-surface-subtle">
-                      <span className="text-ink-faint block text-[10px] uppercase font-semibold">Review Req.</span>
-                      <span className={`text-base font-bold block mt-0.5 font-mono ${report.syllabus_alignment.review_required_count > 0 ? "text-accent-ink font-extrabold" : "text-ink-faint"}`}>
-                        {report.syllabus_alignment.review_required_count}
-                      </span>
-                      <span className="text-[10px] text-ink-faint block">Faculty Review</span>
-                    </div>
-                  </div>
+                        <div className="p-3.5 rounded-xl border border-line bg-surface-subtle">
+                          <span className="text-ink-faint block text-[10px] uppercase font-semibold tracking-wider">
+                            Issues / Review
+                          </span>
+                          <span
+                            className={`text-lg sm:text-xl font-bold block mt-0.5 font-mono ${totalIssues > 0 ? "text-accent-ink font-extrabold" : "text-ink-faint"
+                              }`}
+                          >
+                            {totalIssues}
+                          </span>
+                          <span className="text-[11px] text-ink-faint block truncate">
+                            {issueParts.length > 0 ? issueParts.join(" · ") : "Zero scope violations"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Human Scrutiny Review Panel */}
                   {report.syllabus_alignment.requires_human_review && (
