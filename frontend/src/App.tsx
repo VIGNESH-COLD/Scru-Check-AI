@@ -143,14 +143,14 @@ const SCRUTINY_STEPS = [
     id: "headers",
     name: "Header & Regulation Verification",
     criterion: "Criteria 1 & 2",
-    description: "Validating institutional headers, regulations, course metadata, and exam pattern formulas",
+    description: "Validating institutional headers, regulations, course metadata, and exam pattern",
     targetProgress: 18,
   },
   {
     id: "syllabus",
     name: "Syllabus Alignment & Unit Validation",
     criterion: "Criterion 3",
-    description: "Checking unit boundaries (e.g., CAT-1 Units I & II), topic relevance, and Course Outcomes",
+    description: "Checking unit boundaries (e.g., CAT-1 Units I & II), topic relevance",
     targetProgress: 36,
   },
   {
@@ -164,7 +164,7 @@ const SCRUTINY_STEPS = [
     id: "repetition",
     name: "Repetition Risk & Duplicate Detection",
     criterion: "Criterion 9",
-    description: "Analyzing internal question similarity and cross-checking against previous-year archives",
+    description: "Analyzing internal question similarity",
     targetProgress: 68,
   },
   {
