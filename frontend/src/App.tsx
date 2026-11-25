@@ -27,7 +27,6 @@ import {
   Moon,
   RotateCcw,
   ArrowUp,
-  Sparkles,
   ChevronRight,
 } from "lucide-react";
 import {
@@ -1820,10 +1819,8 @@ export const App: React.FC = () => {
                 }`}
             >
               <div className="flex items-start sm:items-center space-x-3 min-w-0">
-                {report.is_approved ? (
+                {report.is_approved && (
                   <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-brand-ink shrink-0 animate-check-pop mt-0.5 sm:mt-0" />
-                ) : (
-                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-accent-ink shrink-0 animate-check-pop mt-0.5 sm:mt-0" />
                 )}
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -2054,8 +2051,7 @@ export const App: React.FC = () => {
             {!report.is_approved && report.blocking_reasons.length > 0 && (
               <div className="p-4 sm:p-5 rounded-2xl bg-accent-surface border border-accent-line space-y-3 text-ink shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-start sm:items-center space-x-2 text-accent-ink font-bold text-xs uppercase tracking-wider font-mono">
-                    <Sparkles className="w-4 h-4 text-accent-ink shrink-0 mt-0.5 sm:mt-0" />
+                  <div className="text-accent-ink font-bold text-xs uppercase tracking-wider font-mono">
                     <span>Institutional Remediation Action Plan ({report.blocking_reasons.length} Requirements)</span>
                   </div>
                   <span className="text-[11px] font-mono font-semibold text-accent-ink bg-surface px-2.5 py-0.5 rounded-full border border-accent-line self-start sm:self-auto whitespace-nowrap shrink-0">
@@ -2079,18 +2075,13 @@ export const App: React.FC = () => {
             {punchlistItems.length > 0 && (
               <div className="p-5 rounded-2xl bg-surface border border-accent-line shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line pb-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-lg bg-accent text-slate-900 flex items-center justify-center font-bold text-xs shadow-sm">
-                      <Sparkles className="w-4 h-4 text-slate-900" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-ink uppercase tracking-wide font-mono">
-                        Unified Scrutiny Punchlist ({punchlistItems.length} Actionable Items)
-                      </h3>
-                      <p className="text-[11px] text-ink-faint">
-                        Aggregated findings across all 10 criteria. Click any finding to inspect question context.
-                      </p>
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-ink uppercase tracking-wide font-mono">
+                      Unified Scrutiny Punchlist ({punchlistItems.length} Actionable Items)
+                    </h3>
+                    <p className="text-[11px] text-ink-faint">
+                      Aggregated findings across all 10 criteria. Click any finding to inspect question context.
+                    </p>
                   </div>
                   <button
                     type="button"
