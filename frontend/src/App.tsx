@@ -37,9 +37,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 interface PatternItem {
@@ -1847,6 +1844,122 @@ export const App: React.FC = () => {
               </div>
             )}
 
+            {/* Overview: All-Criteria Health Chart */}
+            {(() => {
+              const headerItems = Object.values(report.header_checks || {});
+              const formatTotal = headerItems.length + 3;
+              const formatPass =
+                headerItems.filter((h: any) => h.found).length +
+                (report.pattern_compliance?.marks_match ? 1 : 0) +
+                (report.pattern_compliance?.duration_match ? 1 : 0) +
+                (report.pattern_compliance?.sections_match ? 1 : 0);
+
+              const detailItems = Object.values(report.exam_details?.items || {});
+              const detailsTotal = detailItems.length;
+              const detailsPass = detailItems.filter((i: any) => i.found).length;
+
+              const sylTotal = report.syllabus_alignment
+                ? (report.syllabus_alignment.total_questions ?? report.syllabus_alignment.results?.length ?? 0)
+                : 0;
+              const sylPass = report.syllabus_alignment?.aligned_count ?? 0;
+
+              const marksTotal = report.mark_distribution
+                ? (report.mark_distribution.total_questions_evaluated ?? report.mark_distribution.evaluations?.length ?? 0)
+                : 0;
+              const marksPass = report.mark_distribution?.pass_count ?? 0;
+
+              const bloomsQs = report.blooms_taxonomy?.questions || [];
+              const bloomsTotal = bloomsQs.length;
+              const bloomsPass = bloomsQs.filter((q: any) => q.overall_status === "PASS").length;
+
+              const grammarTotal = report.grammar_check
+                ? (report.grammar_check.total_questions_examined ?? report.grammar_check.questions?.length ?? 0)
+                : 0;
+              const grammarPass = report.grammar_check?.clean_questions_count ?? 0;
+
+              const repTotal = report.repetition_risk
+                ? (report.repetition_risk.total_questions_evaluated ?? report.repetition_risk.evaluations?.length ?? 0)
+                : 0;
+              const repPass = report.repetition_risk?.pass_count ?? 0;
+
+              const healthRows = [
+                { key: "format", name: "Format", pass: formatPass, total: formatTotal },
+                { key: "details", name: "Details", pass: detailsPass, total: detailsTotal },
+                ...(report.syllabus_alignment ? [{ key: "syllabus", name: "Syllabus", pass: sylPass, total: sylTotal }] : []),
+                ...(report.mark_distribution ? [{ key: "marks", name: "Marks", pass: marksPass, total: marksTotal }] : []),
+                ...(report.blooms_taxonomy ? [{ key: "blooms", name: "Bloom's", pass: bloomsPass, total: bloomsTotal }] : []),
+                ...(report.grammar_check ? [{ key: "grammar", name: "Grammar", pass: grammarPass, total: grammarTotal }] : []),
+                ...(report.repetition_risk ? [{ key: "repetition", name: "Repetition", pass: repPass, total: repTotal }] : []),
+              ];
+
+              return (
+                <div className="p-4 sm:p-5 rounded-2xl border border-line bg-surface-subtle space-y-3.5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-ink-faint block">
+                        Overview Section
+                      </span>
+                      <h3 className="text-sm sm:text-base font-bold text-ink tracking-tight">
+                        All-Criteria Health Chart
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-ink-muted">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-brand inline-block" />
+                        <span>Pass</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-accent inline-block" />
+                        <span>Flag / Review</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {healthRows.map((row) => {
+                      const safeTotal = row.total || 1;
+                      const passPct = Math.round((row.pass / safeTotal) * 100);
+                      const flagCount = Math.max(0, row.total - row.pass);
+                      const flagPct = row.total > 0 ? 100 - passPct : 0;
+                      return (
+                        <button
+                          key={row.key}
+                          type="button"
+                          onClick={() => handleTabClick(row.key)}
+                          className="w-full flex items-center gap-3 text-xs group cursor-pointer text-left rounded-lg px-1.5 py-1 hover:bg-surface transition-colors"
+                          title={`Jump to ${row.name}: ${row.pass} passed, ${flagCount} flagged/review`}
+                        >
+                          <span className="w-20 font-semibold text-ink-muted group-hover:text-ink shrink-0 truncate">
+                            {row.name}
+                          </span>
+                          <div className="flex-1 h-3.5 rounded-full overflow-hidden bg-surface-muted border border-line/60 flex">
+                            {row.pass > 0 && (
+                              <div
+                                className="h-full bg-brand transition-all duration-500"
+                                style={{ width: `${passPct}%` }}
+                              />
+                            )}
+                            {flagCount > 0 && (
+                              <div
+                                className="h-full bg-accent transition-all duration-500"
+                                style={{ width: `${flagPct}%` }}
+                              />
+                            )}
+                          </div>
+                          <span className="w-14 text-right font-mono tabular-nums shrink-0 text-[11px]">
+                            <span className={flagCount === 0 ? "text-brand-ink font-bold" : "text-ink font-bold"}>
+                              {row.pass}
+                            </span>
+                            <span className="text-ink-faint">/{row.total}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Institutional Compliance Action Plan (Blocking Reasons Reframed) */}
             {!report.is_approved && report.blocking_reasons.length > 0 && (
               <div className="p-4 sm:p-5 rounded-2xl bg-accent-surface border border-accent-line space-y-3 text-ink shadow-sm">
@@ -2350,33 +2463,10 @@ export const App: React.FC = () => {
                     </div>
                   )}
 
-                  {/* 3 Recharts Bar Charts */}
+                  {/* Syllabus Coverage Chart */}
                   <div className="space-y-2.5">
 
-                    <div className="syllabus-insight-grid grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Chart A: Prescribed Units */}
-                      <div className="syllabus-unit-card p-5 rounded-2xl space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-ink uppercase tracking-[0.12em]">
-                            Prescribed Units
-                          </span>
-                          <span className="syllabus-unit-tag">Units 1–5</span>
-                        </div>
-                        <div className="h-44 w-full pt-1">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={report.syllabus_alignment.chart_prescribed_units || []} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                              <XAxis dataKey="unit_label" stroke={chartTheme.axisText} fontSize={10} tickLine={false} />
-                              <YAxis stroke={chartTheme.axisText} fontSize={10} allowDecimals={false} tickLine={false} />
-                              <Tooltip
-                                contentStyle={{ backgroundColor: chartTheme.tooltipBg, borderColor: chartTheme.tooltipBorder, color: chartTheme.tooltipText, borderRadius: "8px", fontSize: "11px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
-                              />
-                              <Bar dataKey="question_count" name="Items" fill={chartTheme.barPrimary} radius={[5, 5, 0, 0]} />
-                              <Bar dataKey="question_group_count" name="Distinct Groups" fill={chartTheme.barSecondary} radius={[5, 5, 0, 0]} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-
+                    <div className="syllabus-insight-grid grid grid-cols-1 gap-4">
                       {/* Syllabus Coverage Card */}
                       {(() => {
                         const prescribedUnits = report.syllabus_alignment.chart_prescribed_units || [];
@@ -2405,7 +2495,7 @@ export const App: React.FC = () => {
                         });
 
                         return (
-                          <div className="syllabus-coverage-card p-5 rounded-2xl space-y-4 md:col-span-2">
+                          <div className="syllabus-coverage-card p-4 sm:p-5 rounded-2xl space-y-4">
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center space-x-3">
                                 <div className="syllabus-coverage-icon">
@@ -2995,112 +3085,171 @@ export const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Pie Chart & UG Target Breakdown Section */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 rounded-xl border border-line bg-surface-subtle">
-                    {/* Left: Recharts Pie Chart (5 cols) */}
-                    <div className="lg:col-span-5 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-line pb-6 lg:pb-0 lg:pr-6">
-                      <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-ink-muted mb-2">
-                        Bloom&apos;s Taxonomy Weightage (Pie Chart)
-                      </h3>
-                      <div className="w-full h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={report.blooms_taxonomy.distribution_pie_data}
-                              dataKey="marks_percentage"
-                              nameKey="display_name"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={80}
-                              innerRadius={45}
-                              paddingAngle={3}
-                              label={(entry: any) => `${(entry.name || "").replace("Category ", "Cat ")}: ${entry.marks_percentage ?? entry.value}%`}
-                            >
-                              {report.blooms_taxonomy.distribution_pie_data.map((entry: any, index: number) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={chartTheme.pieColors[index % chartTheme.pieColors.length]}
-                                  stroke={chartTheme.tooltipBg}
-                                  strokeWidth={2}
-                                />
-                              ))}
-                            </Pie>
-                            <Tooltip
-                              content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                  const data = payload[0].payload;
-                                  return (
-                                    <div className="bg-surface border border-line text-ink p-2.5 rounded-lg text-xs shadow-xl space-y-1">
-                                      <p className="font-bold font-mono">{data.display_name} — {data.tier}</p>
-                                      <p className="text-ink-muted">Marks: <span className="font-mono font-bold text-ink">{data.marks}M</span> ({data.marks_percentage}%)</p>
-                                      <p className="text-ink-muted">UG Target: <span className="font-mono text-brand-ink font-bold">{data.target}</span></p>
-                                      <p className="text-ink-faint">Questions: {data.question_count}</p>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              }}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-2 text-[11px] font-mono font-bold">
-                        <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[0] }}></span><span className="text-ink-muted">Cat A (Base)</span></span>
-                        <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[1] }}></span><span className="text-ink-muted">Cat B (Medium)</span></span>
-                        <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[2] }}></span><span className="text-ink-muted">Cat C (Highest)</span></span>
-                      </div>
-                    </div>
+                  {/* Target vs. Actual Weightage & A1–C2 Level Breakdown */}
+                  {(() => {
+                    const targetMap: Record<string, number> = {
+                      "Category A": 50,
+                      "Category B": 32,
+                      "Category C": 18,
+                    };
+                    const levelsOrder = ["A1", "A2", "B1", "B2", "C1", "C2"];
+                    const levelCounts: Record<string, number> = {
+                      A1: 0,
+                      A2: 0,
+                      B1: 0,
+                      B2: 0,
+                      C1: 0,
+                      C2: 0,
+                    };
+                    for (const q of report.blooms_taxonomy.questions || []) {
+                      const lvl = (q.evaluated_bt || "").toUpperCase();
+                      if (lvl in levelCounts) {
+                        levelCounts[lvl] += 1;
+                      }
+                    }
+                    const levelChartData = levelsOrder.map((lvl) => ({
+                      level: lvl,
+                      count: levelCounts[lvl],
+                    }));
 
-                    {/* Right: 3 Category Target Cards (7 cols) */}
-                    <div className="lg:col-span-7 space-y-3 flex flex-col justify-center">
-                      <div className="flex items-center justify-between pb-1">
-                        <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-ink-muted">
-                          UG Level Distribution Targets
-                        </h3>
-                        <span className="text-[11px] font-mono text-ink-faint">Target Guidelines</span>
-                      </div>
-
-                      {report.blooms_taxonomy.distribution_slices.map((slice: any, idx: number) => (
-                        <div
-                          key={`slice-${idx}`}
-                          className="p-3.5 rounded-xl border border-line bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-bold text-ink font-mono">{slice.display_name}</span>
-                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-muted text-ink-muted border border-line">
-                                {slice.description}
-                              </span>
-                            </div>
-                            <div className="text-[11px] text-ink-faint">
-                              Levels: <span className="text-ink font-mono font-semibold">{slice.levels_present.join(", ") || "None"}</span> • {slice.question_count} question(s)
-                            </div>
-                            <div className="text-[11px] text-ink-faint">
-                              {slice.comment}
-                            </div>
+                    return (
+                      <div className="space-y-5 p-4 sm:p-5 rounded-xl border border-line bg-surface-subtle">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-faint block">
+                              Bloom&apos;s Taxonomy Distribution
+                            </span>
+                            <h3 className="text-sm sm:text-base font-bold text-ink tracking-tight">
+                              Target vs. Actual Weightage &amp; A1–C2 Level Breakdown
+                            </h3>
                           </div>
-
-                          <div className="text-left sm:text-right shrink-0">
-                            <div className="flex items-baseline sm:justify-end space-x-1.5">
-                              <span className="text-base font-bold font-mono text-brand-ink">{slice.marks_percentage}%</span>
-                              <span className="text-xs text-ink-faint font-mono">({slice.total_marks}M)</span>
-                            </div>
-                            <div className="text-[11px] font-mono text-ink-faint">
-                              Target: <span className="text-ink font-semibold">{slice.target_percentage_str}</span>
-                            </div>
-                            <span
-                              className={`inline-block text-[10px] font-mono font-bold mt-1 px-2.5 py-0.5 rounded-full shadow-sm ${slice.status === "PASS"
-                                ? "bg-brand text-btn-brand"
-                                : "bg-accent text-btn-accent"
-                                }`}
-                            >
-                              {slice.status === "PASS" ? "TARGET MET" : "OUT OF RANGE"}
+                          <div className="flex items-center gap-3 text-[11px] font-mono text-ink-muted shrink-0">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-sm bg-brand inline-block" />
+                              <span>Actual %</span>
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-sm bg-accent inline-block" />
+                              <span>UG Target %</span>
                             </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                          {/* Left: Category Target vs. Actual (%) */}
+                          <div className="lg:col-span-6 space-y-3.5 border-b lg:border-b-0 lg:border-r border-line pb-5 lg:pb-0 lg:pr-6">
+                            <p className="text-xs font-mono font-semibold uppercase tracking-wider text-ink-muted">
+                              Category Target vs. Actual (%)
+                            </p>
+                            <div className="space-y-3">
+                              {(report.blooms_taxonomy.distribution_slices || []).map((slice: any, idx: number) => {
+                                const actualPct = Math.min(100, Math.max(0, Number(slice.marks_percentage || 0)));
+                                const targetPct = targetMap[slice.category] ?? 30;
+                                const shortLabel = slice.display_name?.split("—")[0]?.trim() || slice.category;
+                                return (
+                                  <div key={`bt-bar-${idx}`} className="space-y-1.5 text-xs">
+                                    <div className="flex flex-wrap items-center justify-between gap-1 font-mono">
+                                      <span className="font-bold text-ink">{shortLabel}</span>
+                                      <span className="text-ink-faint text-[11px]">
+                                        Actual <strong className="text-ink">{actualPct}%</strong> / Target {slice.target_percentage_str}
+                                      </span>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <div className="h-2.5 rounded-full bg-surface-muted overflow-hidden border border-line/50">
+                                        <div
+                                          className="h-full bg-brand rounded-full transition-all duration-500"
+                                          style={{ width: `${actualPct}%` }}
+                                        />
+                                      </div>
+                                      <div className="h-2 rounded-full bg-surface-muted overflow-hidden">
+                                        <div
+                                          className="h-full bg-accent/80 rounded-full transition-all duration-500"
+                                          style={{ width: `${targetPct}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Right: Questions by Cognitive Level (A1–C2) */}
+                          <div className="lg:col-span-6 space-y-2">
+                            <p className="text-xs font-mono font-semibold uppercase tracking-wider text-ink-muted">
+                              Questions by Cognitive Level (A1–C2)
+                            </p>
+                            <div className="h-48 w-full pt-1">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={levelChartData} margin={{ top: 12, right: 8, left: -24, bottom: 0 }}>
+                                  <XAxis dataKey="level" stroke={chartTheme.axisText} fontSize={11} tickLine={false} />
+                                  <YAxis stroke={chartTheme.axisText} fontSize={10} allowDecimals={false} tickLine={false} />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: chartTheme.tooltipBg,
+                                      borderColor: chartTheme.tooltipBorder,
+                                      color: chartTheme.tooltipText,
+                                      borderRadius: "8px",
+                                      fontSize: "11px",
+                                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                                    }}
+                                    formatter={(value: any) => [`${value} question(s)`, "Count"]}
+                                  />
+                                  <Bar
+                                    dataKey="count"
+                                    name="Questions"
+                                    fill={chartTheme.barSecondary}
+                                    radius={[6, 6, 0, 0]}
+                                    maxBarSize={42}
+                                  />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* UG Level Distribution Target Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-line">
+                          {(report.blooms_taxonomy.distribution_slices || []).map((slice: any, idx: number) => (
+                            <div
+                              key={`slice-${idx}`}
+                              className="p-3.5 rounded-xl border border-line bg-surface flex flex-col justify-between gap-2.5 text-xs shadow-sm"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className="font-bold text-ink font-mono">{slice.display_name}</span>
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-muted text-ink-muted border border-line">
+                                    {slice.description}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-ink-faint">
+                                  Levels: <span className="text-ink font-mono font-semibold">{slice.levels_present.join(", ") || "None"}</span> • {slice.question_count} question(s)
+                                </div>
+                                <div className="text-[11px] text-ink-faint">
+                                  {slice.comment}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t border-line-subtle">
+                                <div>
+                                  <span className="text-sm font-bold font-mono text-brand-ink">{slice.marks_percentage}%</span>
+                                  <span className="text-[11px] text-ink-faint font-mono ml-1">({slice.total_marks}M / {slice.target_percentage_str})</span>
+                                </div>
+                                <span
+                                  className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full shadow-sm ${slice.status === "PASS"
+                                    ? "bg-brand text-btn-brand"
+                                    : "bg-accent text-btn-accent"
+                                    }`}
+                                >
+                                  {slice.status === "PASS" ? "TARGET MET" : "OUT OF RANGE"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Either / Or Option Knowledge Parity Table */}
                   {report.blooms_taxonomy.choice_pairs_parity.length > 0 && (
