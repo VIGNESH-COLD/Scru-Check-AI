@@ -1208,13 +1208,13 @@ export const App: React.FC = () => {
   ] : [];
 
   return (
-    <div className="app-shell min-h-screen bg-canvas text-ink py-6 sm:py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand">
+    <div className="app-shell min-h-screen bg-canvas text-ink py-4 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-5">
         {/* Top Header Card */}
-        <header className="hero-panel rounded-2xl border border-line bg-surface p-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4">
-          <div className="brand-identity">
+        <header className="hero-panel rounded-2xl border border-line bg-surface p-3.5 sm:px-6 sm:py-5 flex items-center justify-between gap-3">
+          <div className="brand-identity min-w-0">
             <div>
-              <h1 className="brand-wordmark text-xl sm:text-2xl font-bold text-ink leading-tight">
+              <h1 className="brand-wordmark text-lg sm:text-2xl font-bold text-ink leading-tight truncate">
                 Scru-Check-AI
               </h1>
             </div>
@@ -1223,7 +1223,7 @@ export const App: React.FC = () => {
             type="button"
             onClick={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-            className="theme-toggle flex items-center space-x-2 px-3.5 py-2 rounded-lg border border-line text-xs font-semibold text-ink bg-surface hover:bg-surface-subtle transition-all duration-150 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="theme-toggle shrink-0 flex items-center space-x-2 px-3 sm:px-3.5 py-2 rounded-lg border border-line text-xs font-semibold text-ink bg-surface hover:bg-surface-subtle transition-all duration-150 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             {isDark ? (
               <>
@@ -1240,13 +1240,13 @@ export const App: React.FC = () => {
         </header>
 
         {/* Exam Pattern Card */}
-        <section className="workspace-card rounded-[28px] border border-line bg-surface p-6 shadow-sm space-y-4">
+        <section className="workspace-card rounded-[24px] sm:rounded-[28px] border border-line bg-surface p-4 sm:p-6 shadow-sm space-y-4">
           <div>
-            <h2 className="text-xl font-bold text-ink tracking-tight">Exam Pattern</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-ink tracking-tight">Exam Pattern</h2>
           </div>
 
           {/* Tab Capsule Segmented Control */}
-          <div className="bg-track p-1.5 rounded-2xl flex items-center gap-1.5 mt-3 border border-line-subtle">
+          <div className="bg-track p-1.5 rounded-2xl flex items-center gap-1 sm:gap-1.5 mt-3 border border-line-subtle overflow-x-auto scrollbar-none">
             {TABS.map((tab) => {
               const isActive = activeTab === tab;
               return (
@@ -1254,7 +1254,7 @@ export const App: React.FC = () => {
                   type="button"
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`flex-1 py-2 px-3 text-center text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${isActive
+                  className={`flex-1 py-2 px-2 sm:px-3 text-center text-xs sm:text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${isActive
                     ? "bg-brand text-btn-brand shadow-sm font-bold"
                     : "text-ink-muted hover:text-ink hover:bg-surface/50 font-medium"
                     }`}
@@ -1733,30 +1733,30 @@ export const App: React.FC = () => {
 
         {/* Scrutiny Results Panel */}
         {report && (
-          <div className="mt-6 rounded-2xl border border-line bg-surface p-6 space-y-6 shadow-sm text-ink animate-scrutiny-reveal">
+          <div className="mt-6 rounded-2xl border border-line bg-surface p-3.5 sm:p-6 space-y-5 sm:space-y-6 shadow-sm text-ink animate-scrutiny-reveal">
             {/* Overall Scrutiny Banner */}
             <div
               id="sec-overview"
-              className={`p-5 rounded-2xl border-2 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 shadow-sm scroll-mt-24 ${report.is_approved
+              className={`p-4 sm:p-5 rounded-2xl border-2 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 shadow-sm scroll-mt-24 ${report.is_approved
                 ? "bg-brand-surface border-brand text-ink"
                 : "bg-accent-surface border-accent text-ink"
                 }`}
             >
-              <div className="flex items-center space-x-3.5">
+              <div className="flex items-start sm:items-center space-x-3 min-w-0">
                 {report.is_approved ? (
-                  <CheckCircle2 className="w-7 h-7 text-brand-ink shrink-0 animate-check-pop" />
+                  <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-brand-ink shrink-0 animate-check-pop mt-0.5 sm:mt-0" />
                 ) : (
-                  <Sparkles className="w-7 h-7 text-accent-ink shrink-0 animate-check-pop" />
+                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-accent-ink shrink-0 animate-check-pop mt-0.5 sm:mt-0" />
                 )}
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-extrabold text-sm sm:text-base tracking-wide text-ink">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-extrabold text-sm sm:text-base tracking-wide text-ink leading-snug">
                       {report.is_approved
                         ? "QUESTION PAPER SCRUTINY APPROVED"
                         : "INSTITUTIONAL SCRUTINY ACTION PLAN"}
                     </span>
                     <span
-                      className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase font-mono shadow-sm transition-all duration-200 animate-check-pop ${report.is_approved
+                      className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase font-mono shadow-sm whitespace-nowrap transition-all duration-200 animate-check-pop ${report.is_approved
                         ? "bg-brand text-btn-brand"
                         : "bg-accent text-slate-900 font-extrabold"
                         }`}
@@ -1764,7 +1764,7 @@ export const App: React.FC = () => {
                       {report.is_approved ? "APPROVED" : "REVISIONS REQUIRED"}
                     </span>
                   </div>
-                  <p className="text-xs text-ink-faint mt-0.5 font-medium flex items-center flex-wrap gap-2">
+                  <p className="text-xs text-ink-faint mt-1 font-medium flex items-center flex-wrap gap-x-2 gap-y-0.5">
                     <span>Pattern: <span className="text-ink font-semibold">{report.selected_pattern_name}</span></span>
                     <span>•</span>
                     <span>Regulation: <span className="text-ink font-mono font-semibold">{report.regulation?.regulation_code || "Standard"}</span></span>
@@ -1772,40 +1772,42 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleResetScrutiny}
-                  className="inline-flex items-center space-x-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border border-line bg-surface hover:bg-surface-subtle text-ink shadow-sm transition-all duration-150 active:scale-95 cursor-pointer"
-                  title="Scrutinize a new question paper"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-ink-muted" />
-                  <span>New Paper</span>
-                </button>
+              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 w-full md:w-auto shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-line/50">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetScrutiny}
+                    className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-line bg-surface hover:bg-surface-subtle text-ink shadow-sm transition-all duration-150 active:scale-95 cursor-pointer whitespace-nowrap"
+                    title="Scrutinize a new question paper"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-ink-muted shrink-0" />
+                    <span>New Paper</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleDownloadPdfReport}
-                  disabled={isDownloadingPdf}
-                  className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wide uppercase transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 bg-brand hover:bg-brand-hover text-btn-brand shadow-sm hover:shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-brand focus-visible:ring-2 focus-visible:ring-brand"
-                  title="Download complete academic scrutiny report as PDF"
-                >
-                  {isDownloadingPdf ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-btn-brand/20 border-t-btn-brand rounded-full animate-spin inline-block" />
-                      <span>Generating PDF...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FileDown className="w-4 h-4 text-btn-brand" />
-                      <span>Download PDF Report</span>
-                    </>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdfReport}
+                    disabled={isDownloadingPdf}
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold font-mono tracking-wide uppercase transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 bg-brand hover:bg-brand-hover text-btn-brand shadow-sm hover:shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-brand focus-visible:ring-2 focus-visible:ring-brand whitespace-nowrap"
+                    title="Download complete academic scrutiny report as PDF"
+                  >
+                    {isDownloadingPdf ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-btn-brand/20 border-t-btn-brand rounded-full animate-spin inline-block shrink-0" />
+                        <span>Generating PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4 text-btn-brand shrink-0" />
+                        <span>Download PDF</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
-                <div className="text-right border-l border-line pl-3">
+                <div className="text-right border-l border-line pl-3 ml-auto sm:ml-0 shrink-0">
                   <span className="text-[10px] text-ink-faint uppercase font-semibold block">Score</span>
-                  <span className={`text-2xl font-black font-mono ${report.is_approved ? "text-brand-ink" : "text-accent-ink"}`}>
+                  <span className={`text-xl sm:text-2xl font-black font-mono ${report.is_approved ? "text-brand-ink" : "text-accent-ink"}`}>
                     {report.compliance_score}%
                   </span>
                 </div>
@@ -1847,13 +1849,13 @@ export const App: React.FC = () => {
 
             {/* Institutional Compliance Action Plan (Blocking Reasons Reframed) */}
             {!report.is_approved && report.blocking_reasons.length > 0 && (
-              <div className="p-5 rounded-2xl bg-accent-surface border border-accent-line space-y-3 text-ink shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs uppercase tracking-wider font-mono">
-                    <Sparkles className="w-4 h-4 text-accent-ink" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-accent-surface border border-accent-line space-y-3 text-ink shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-start sm:items-center space-x-2 text-accent-ink font-bold text-xs uppercase tracking-wider font-mono">
+                    <Sparkles className="w-4 h-4 text-accent-ink shrink-0 mt-0.5 sm:mt-0" />
                     <span>Institutional Remediation Action Plan ({report.blocking_reasons.length} Requirements)</span>
                   </div>
-                  <span className="text-[11px] font-mono font-semibold text-accent-ink bg-surface px-2.5 py-0.5 rounded-full border border-accent-line">
+                  <span className="text-[11px] font-mono font-semibold text-accent-ink bg-surface px-2.5 py-0.5 rounded-full border border-accent-line self-start sm:self-auto whitespace-nowrap shrink-0">
                     Resolve before official sign-off
                   </span>
                 </div>
@@ -2826,12 +2828,12 @@ export const App: React.FC = () => {
                         </div>
 
                         {/* Rule Filter */}
-                        <div className="flex items-center space-x-1 bg-surface-muted border border-line rounded-lg px-2 py-1">
-                          <span className="text-ink-faint text-[10px]">Rule:</span>
+                        <div className="flex items-center space-x-1 bg-surface-muted border border-line rounded-lg px-2 py-1 max-w-full">
+                          <span className="text-ink-faint text-[10px] shrink-0">Rule:</span>
                           <select
                             value={c4FilterRule}
                             onChange={(e) => setC4FilterRule(e.target.value)}
-                            className="bg-transparent text-ink font-bold outline-none cursor-pointer text-[11px]"
+                            className="bg-transparent text-ink font-bold outline-none cursor-pointer text-[11px] max-w-[190px] sm:max-w-none truncate"
                           >
                             <option value="ALL" className="bg-surface text-ink">All Rules</option>
                             <option value="RULE_PART_A_NO_SUBDIVISIONS" className="bg-surface text-ink">Rule 1: Part A No Sub-divisions</option>
@@ -3042,7 +3044,7 @@ export const App: React.FC = () => {
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      <div className="flex items-center justify-center space-x-4 mt-2 text-[11px] font-mono font-bold">
+                      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-2 text-[11px] font-mono font-bold">
                         <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[0] }}></span><span className="text-ink-muted">Cat A (Base)</span></span>
                         <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[1] }}></span><span className="text-ink-muted">Cat B (Medium)</span></span>
                         <span className="flex items-center space-x-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: chartTheme.pieColors[2] }}></span><span className="text-ink-muted">Cat C (Highest)</span></span>
@@ -4001,7 +4003,7 @@ export const App: React.FC = () => {
 
               {/* 7) Repetition Risk Analysis Section (Criterion 7) */}
               {report.repetition_risk && (
-                <div id="sec-repetition" className="rounded-2xl border border-line bg-surface p-6 shadow-sm space-y-6 text-ink scroll-mt-24">
+                <div id="sec-repetition" className="rounded-2xl border border-line bg-surface p-4 sm:p-6 shadow-sm space-y-5 sm:space-y-6 text-ink scroll-mt-24">
                   {/* Section Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
                     <div className="flex items-center space-x-2.5">
@@ -4067,19 +4069,21 @@ export const App: React.FC = () => {
                   </div>
 
                   {/* Filter Controls */}
-                  <div className="p-4 rounded-xl border border-line bg-surface-muted space-y-3">
+                  <div className="p-3.5 sm:p-4 rounded-xl border border-line bg-surface-muted space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                       {/* Filter by Status */}
-                      <div className="flex items-center space-x-2">
-                        <Filter className="w-3.5 h-3.5 text-ink-muted shrink-0" />
-                        <span className="text-ink-muted text-[11px] font-semibold uppercase">Status:</span>
-                        <div className="flex items-center space-x-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center space-x-1.5 shrink-0">
+                          <Filter className="w-3.5 h-3.5 text-ink-muted shrink-0" />
+                          <span className="text-ink-muted text-[11px] font-semibold uppercase">Status:</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {["ALL", "FLAG", "REVIEW_REQUIRED", "PASS"].map((st) => (
                             <button
                               type="button"
                               key={st}
                               onClick={() => setC9FilterStatus(st)}
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${c9FilterStatus === st
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all cursor-pointer ${c9FilterStatus === st
                                 ? "bg-brand text-btn-brand shadow-sm"
                                 : "bg-surface text-ink-muted border border-line hover:bg-surface-subtle hover:text-ink"
                                 }`}
@@ -4091,9 +4095,9 @@ export const App: React.FC = () => {
                       </div>
 
                       {/* Filter by Scope */}
-                      <div className="flex items-center space-x-2">
-                        <span className="text-ink-muted text-[11px] font-semibold uppercase">Scope:</span>
-                        <div className="flex items-center space-x-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-ink-muted text-[11px] font-semibold uppercase shrink-0">Scope:</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {[
                             { id: "ALL", label: "All" },
                             { id: "INTERNAL", label: "Repeated" },
@@ -4103,7 +4107,7 @@ export const App: React.FC = () => {
                               type="button"
                               key={sc.id}
                               onClick={() => setC9FilterScope(sc.id)}
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${c9FilterScope === sc.id
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all cursor-pointer ${c9FilterScope === sc.id
                                 ? "bg-brand text-btn-brand shadow-sm"
                                 : "bg-surface text-ink-muted border border-line hover:bg-surface-subtle hover:text-ink"
                                 }`}
@@ -4235,7 +4239,7 @@ export const App: React.FC = () => {
                                               key={mIdx}
                                               className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg border border-line bg-surface text-xs shadow-sm"
                                             >
-                                              <div className="space-y-1 border-r border-line pr-2">
+                                              <div className="space-y-1 border-b md:border-b-0 md:border-r border-line pb-2 md:pb-0 md:pr-2">
                                                 <div className="flex items-center space-x-2">
                                                   <span className="font-mono font-bold text-brand-ink">Current Paper ({m.source_question_id})</span>
                                                 </div>
@@ -4244,7 +4248,7 @@ export const App: React.FC = () => {
                                                 </p>
                                               </div>
 
-                                              <div className="space-y-1 pl-1">
+                                              <div className="space-y-1 md:pl-1">
                                                 <div className="flex items-center space-x-2">
                                                   <span className="font-mono font-bold text-accent-ink">
                                                     {m.target_paper_label} ({m.target_question_id})
