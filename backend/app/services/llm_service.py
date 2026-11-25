@@ -25,6 +25,7 @@ import logging
 import os
 import re
 import sys
+from contextvars import ContextVar
 from typing import Any
 
 import httpx
@@ -34,6 +35,10 @@ from app.core.config import settings
 from app.schemas.mark_distribution import LLMComplexityResult, SemanticComplexity
 
 logger = logging.getLogger("scrucheck.llm_service")
+
+_REQUEST_RUN_EVENTS: ContextVar[list[dict[str, Any]] | None] = ContextVar(
+    "scrucheck_llm_run_events", default=None
+)
 
 
 def redact_sensitive_info(text: str) -> str:
@@ -171,8 +176,14 @@ class LLMService:
         self.last_provider_used: str | None = None
         self.last_model_used: str | None = None
 
+    def _get_active_events(self) -> list[dict[str, Any]]:
+        """Return request-scoped events list when active, falling back to instance list."""
+        ctx_events = _REQUEST_RUN_EVENTS.get()
+        return ctx_events if ctx_events is not None else self._run_events
+
     def reset_run_log(self) -> None:
-        """Clear the run events registry before a new scrutiny job."""
+        """Clear the run events registry before a new scrutiny job (concurrency-safe)."""
+        _REQUEST_RUN_EVENTS.set([])
         self._run_events.clear()
         self.last_provider_used = None
         self.last_model_used = None
@@ -193,21 +204,22 @@ class LLMService:
             "model": model,
             "detail": detail,
         }
-        self._run_events.append(event)
+        self._get_active_events().append(event)
         self.last_provider_used = provider
         self.last_model_used = model
         print_llm_status_banner(task=task, tier=tier, provider=provider, model=model, detail=detail)
 
     def get_run_summary(self) -> dict[str, Any]:
         """Aggregate summary of LLM executions in the current run."""
-        primary_cnt = sum(1 for e in self._run_events if e["tier"] == "PRIMARY")
-        fallback_cnt = sum(1 for e in self._run_events if e["tier"] == "FALLBACK")
-        local_cnt = sum(1 for e in self._run_events if e["tier"] == "LOCAL_FALLBACK")
-        mock_cnt = sum(1 for e in self._run_events if e["tier"] == "MOCK")
+        events = self._get_active_events()
+        primary_cnt = sum(1 for e in events if e["tier"] == "PRIMARY")
+        fallback_cnt = sum(1 for e in events if e["tier"] == "FALLBACK")
+        local_cnt = sum(1 for e in events if e["tier"] == "LOCAL_FALLBACK")
+        mock_cnt = sum(1 for e in events if e["tier"] == "MOCK")
 
         distinct_providers = list(dict.fromkeys(
             f"{e['provider']} ({e.get('model') or 'default'})"
-            for e in self._run_events
+            for e in events
             if e["tier"] in ("PRIMARY", "FALLBACK")
         ))
 
@@ -219,7 +231,7 @@ class LLMService:
             summary_label = f"Hybrid ({primary_cnt} Primary {self.provider}, {fallback_cnt} Fallback {self.fallback_provider})"
         elif mock_cnt > 0:
             summary_label = "Mock Simulator"
-        elif len(self._run_events) == 0:
+        elif len(events) == 0:
             summary_label = "No LLM calls required"
         else:
             summary_label = "Local Rule-Based Fallback (Offline Heuristics)"
@@ -230,9 +242,9 @@ class LLMService:
             "fallback_count": fallback_cnt,
             "local_count": local_cnt,
             "mock_count": mock_cnt,
-            "total_calls": len(self._run_events),
+            "total_calls": len(events),
             "providers_used": distinct_providers,
-            "events": list(self._run_events),
+            "events": list(events),
         }
 
     def print_final_summary(self) -> None:

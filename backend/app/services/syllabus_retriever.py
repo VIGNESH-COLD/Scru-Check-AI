@@ -2,6 +2,7 @@ from pathlib import Path
 
 from llama_index.core import Document
 from llama_index.core.schema import TextNode
+from starlette.concurrency import run_in_threadpool
 
 from app.schemas.syllabus import (
     IngestionResponse,
@@ -42,7 +43,8 @@ class SyllabusIngestionService:
         course_title: str | None = None,
     ) -> IngestionResponse:
         """Parse, generate embeddings, and persistently index all syllabus topics."""
-        parsed: ParsedSyllabus = self.parser.parse_file(
+        parsed: ParsedSyllabus = await run_in_threadpool(
+            self.parser.parse_file,
             file_path=file_path,
             syllabus_id=syllabus_id,
             course_code=course_code,
@@ -62,7 +64,7 @@ class SyllabusIngestionService:
 
         # Generate embeddings in batch for all topic contents
         texts_to_embed = [topic.content for topic in parsed.topics]
-        embeddings = self.embedder.get_text_embeddings(texts_to_embed)
+        embeddings = await run_in_threadpool(self.embedder.get_text_embeddings, texts_to_embed)
 
         # Repeatable upsert to persistent vector store
         indexed_count = await self.vector_store.upsert_topics(
@@ -111,7 +113,7 @@ class SyllabusRetriever:
             return RetrievalResponse(query=query, total_candidates=0, results=[])
 
         # Generate query embedding
-        query_embedding = self.embedder.get_text_embedding(query.strip())
+        query_embedding = await run_in_threadpool(self.embedder.get_text_embedding, query.strip())
 
         # Search vector store
         candidate_results: list[TopicSearchResult] = await self.vector_store.search(

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Settings,
   Upload,
@@ -135,6 +135,8 @@ const PATTERNS_DATA: Record<string, PatternItem[]> = {
   ],
 };
 
+const API_BASE = (import.meta.env.VITE_API_URL || "/api/v1").replace(/\/+$/, "");
+
 const TABS = ["CAT-1", "CAT-2", "CAT-3", "University"];
 
 const SCRUTINY_STEPS = [
@@ -238,6 +240,11 @@ export const App: React.FC = () => {
   );
   const [file, setFile] = useState<File | null>(null);
   const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
+  const [isDraggingQp, setIsDraggingQp] = useState<boolean>(false);
+  const [isDraggingSyllabus, setIsDraggingSyllabus] = useState<boolean>(false);
+  const activeRequestAbortRef = useRef<AbortController | null>(null);
+  const activeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Criterion 5 Bloom's Taxonomy Filters
   const [btQuestionFilter, setBtQuestionFilter] = useState<string>("ALL");
   const [btParityFilter, setBtParityFilter] = useState<string>("ALL");
@@ -296,8 +303,16 @@ export const App: React.FC = () => {
   const [showFlaggedOnly, setShowFlaggedOnly] = useState<boolean>(false);
   const [copiedFixId, setCopiedFixId] = useState<string | null>(null);
 
+  useEffect(() => {
+    return () => {
+      activeRequestAbortRef.current?.abort();
+      if (activeTimerRef.current) clearInterval(activeTimerRef.current);
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+    };
+  }, []);
+
   const handleCopyFix = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard?.writeText?.(text).catch(() => {});
     setCopiedFixId(id);
     setTimeout(() => setCopiedFixId(null), 2500);
   };
@@ -514,9 +529,10 @@ export const App: React.FC = () => {
   };
 
   const validateSelectedFile = (selected: File): string | null => {
-    const ext = selected.name.substring(selected.name.lastIndexOf(".")).toLowerCase();
+    const lastDot = selected.name.lastIndexOf(".");
+    const ext = lastDot >= 0 ? selected.name.substring(lastDot).toLowerCase() : "";
     if (![".pdf", ".docx"].includes(ext)) {
-      return `Security Policy Violation: File format '${ext}' is not permitted. Only PDF (.pdf) and Word (.docx) documents are allowed. Formats like PNG, JPG, TXT, DOC, and ZIP are strictly rejected.`;
+      return `Security Policy Violation: File format '${ext || "unknown"}' is not permitted. Only PDF (.pdf) and Word (.docx) documents are allowed. Formats like PNG, JPG, TXT, DOC, and ZIP are strictly rejected.`;
     }
     if (selected.size === 0) {
       return "The selected file is empty (0 bytes). Please select a valid document.";
@@ -527,22 +543,35 @@ export const App: React.FC = () => {
     return null;
   };
 
+  const handleQpFileSelected = (selected: File): boolean => {
+    const validationError = validateSelectedFile(selected);
+    if (validationError) {
+      setError(validationError);
+      setFile(null);
+      return false;
+    }
+    setFile(selected);
+    setError(null);
+    setReport(null);
+    setPdfDownloadError(null);
+    setPdfDownloadSuccess(null);
+    setShowExtractedModal(false);
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const selected = e.target.files[0];
-      const validationError = validateSelectedFile(selected);
-      if (validationError) {
-        setError(validationError);
-        setFile(null);
-        e.target.value = "";
-        return;
-      }
-      setFile(selected);
-      setError(null);
-      setReport(null);
-      setPdfDownloadError(null);
-      setPdfDownloadSuccess(null);
-      setShowExtractedModal(false);
+      const ok = handleQpFileSelected(e.target.files[0]);
+      if (!ok) e.target.value = "";
+    }
+  };
+
+  const handleQpDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingQp(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleQpFileSelected(e.dataTransfer.files[0]);
     }
   };
 
@@ -559,18 +588,31 @@ export const App: React.FC = () => {
     if (input) input.value = "";
   };
 
+  const handleSyllabusFileSelected = (selected: File): boolean => {
+    const validationError = validateSelectedFile(selected);
+    if (validationError) {
+      setError(validationError);
+      setSyllabusFile(null);
+      return false;
+    }
+    setSyllabusFile(selected);
+    setError(null);
+    return true;
+  };
+
   const handleSyllabusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const selected = e.target.files[0];
-      const validationError = validateSelectedFile(selected);
-      if (validationError) {
-        setError(validationError);
-        setSyllabusFile(null);
-        e.target.value = "";
-        return;
-      }
-      setSyllabusFile(selected);
-      setError(null);
+      const ok = handleSyllabusFileSelected(e.target.files[0]);
+      if (!ok) e.target.value = "";
+    }
+  };
+
+  const handleSyllabusDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSyllabus(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleSyllabusFileSelected(e.dataTransfer.files[0]);
     }
   };
 
@@ -589,6 +631,10 @@ export const App: React.FC = () => {
       setError("Please choose a question paper file first.");
       return;
     }
+
+    activeRequestAbortRef.current?.abort();
+    if (activeTimerRef.current) clearInterval(activeTimerRef.current);
+    if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
 
     setIsLoading(true);
     setProgress(5);
@@ -614,6 +660,11 @@ export const App: React.FC = () => {
         return prev;
       });
     }, 100);
+    activeTimerRef.current = timerInterval;
+
+    const controller = new AbortController();
+    activeRequestAbortRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), 180_000);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -627,32 +678,49 @@ export const App: React.FC = () => {
     }
 
     try {
-      const response = await fetch("/api/v1/scrutiny/check-format", {
+      const response = await fetch(`${API_BASE}/scrutiny/check-format`, {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || `Server returned error status ${response.status}`);
+        throw new Error(
+          typeof errData?.detail === "string"
+            ? errData.detail
+            : `Server returned error status ${response.status}`
+        );
       }
 
       const data = await response.json();
       clearInterval(timerInterval);
+      activeTimerRef.current = null;
       setProgress(100);
       setCurrentStepIndex(SCRUTINY_STEPS.length - 1);
 
       // Brief transition so user sees 100% completion
-      setTimeout(() => {
+      completionTimeoutRef.current = setTimeout(() => {
         setReport(data);
         setActiveExtractedTab("qp");
         setIsLoading(false);
       }, 500);
     } catch (err: any) {
       clearInterval(timerInterval);
-      setError(err.message || "Failed to process question paper with scrutiny backend.");
+      activeTimerRef.current = null;
+      const isTimeout = err?.name === "AbortError";
+      setError(
+        isTimeout
+          ? "Scrutiny request timed out after 3 minutes. Please verify the backend is running and try again."
+          : err?.message || "Failed to process question paper with scrutiny backend."
+      );
       setIsLoading(false);
       setProgress(0);
+    } finally {
+      clearTimeout(timeoutId);
+      if (activeRequestAbortRef.current === controller) {
+        activeRequestAbortRef.current = null;
+      }
     }
   };
 
@@ -676,9 +744,9 @@ export const App: React.FC = () => {
     try {
       let response: Response;
 
-      // 1. Primary: GET /api/v1/reports/{report_id}/download
+      // 1. Primary: GET /reports/{report_id}/download
       if (report.report_id) {
-        response = await fetch(`/api/v1/reports/${encodeURIComponent(report.report_id)}/download`, {
+        response = await fetch(`${API_BASE}/reports/${encodeURIComponent(report.report_id)}/download`, {
           method: "GET",
           headers: {
             Accept: "application/pdf",
@@ -687,7 +755,7 @@ export const App: React.FC = () => {
 
         // 2. Fallback: If report not in store (or session reloaded), POST full report model
         if (response.status === 404) {
-          response = await fetch("/api/v1/reports/download-pdf", {
+          response = await fetch(`${API_BASE}/reports/download-pdf`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -697,7 +765,7 @@ export const App: React.FC = () => {
           });
         }
       } else {
-        response = await fetch("/api/v1/reports/download-pdf", {
+        response = await fetch(`${API_BASE}/reports/download-pdf`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1218,7 +1286,20 @@ export const App: React.FC = () => {
           {/* Column 1: Question Paper Upload */}
           <div
             onClick={() => document.getElementById("file-upload")?.click()}
-            className="rounded-2xl p-6 bg-surface border-2 border-dashed border-brand-line hover:border-brand hover:shadow-md shadow-sm flex flex-col justify-between cursor-pointer group transition-all duration-200 min-h-[200px]"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingQp(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingQp(false);
+            }}
+            onDrop={handleQpDrop}
+            className={`rounded-2xl p-6 bg-surface border-2 border-dashed hover:border-brand hover:shadow-md shadow-sm flex flex-col justify-between cursor-pointer group transition-all duration-200 min-h-[200px] ${
+              isDraggingQp ? "border-brand bg-brand-surface ring-2 ring-brand/30" : "border-brand-line"
+            }`}
           >
             <input
               type="file"
@@ -1281,7 +1362,20 @@ export const App: React.FC = () => {
           {/* Column 2: Syllabus Upload */}
           <div
             onClick={() => document.getElementById("syllabus-upload")?.click()}
-            className="rounded-2xl p-6 bg-surface border-2 border-dashed border-accent-line hover:border-accent hover:shadow-md shadow-sm flex flex-col justify-between cursor-pointer group transition-all duration-200 min-h-[200px]"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingSyllabus(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDraggingSyllabus(false);
+            }}
+            onDrop={handleSyllabusDrop}
+            className={`rounded-2xl p-6 bg-surface border-2 border-dashed hover:border-accent hover:shadow-md shadow-sm flex flex-col justify-between cursor-pointer group transition-all duration-200 min-h-[200px] ${
+              isDraggingSyllabus ? "border-accent bg-accent-surface ring-2 ring-accent/30" : "border-accent-line"
+            }`}
           >
             <input
               type="file"
@@ -1711,7 +1805,7 @@ export const App: React.FC = () => {
                       : "bg-surface hover:bg-surface-subtle border-line text-ink-muted"
                       }`}
                   >
-                    {showFlaggedOnly ? "✓ Showing Flagged Only" : "Filter: Show Flagged Only"}
+                    {showFlaggedOnly ? "Showing Flagged Only" : "Filter: Show Flagged Only"}
                   </button>
                 </div>
 
@@ -1752,7 +1846,7 @@ export const App: React.FC = () => {
                               className="px-2 py-0.5 rounded bg-surface border border-line hover:border-brand text-brand-ink text-[10px] font-semibold transition-all duration-150 active:scale-95 cursor-pointer"
                               title="Copy suggested remedy"
                             >
-                              {copiedFixId === item.id ? "Copied ✓" : "Copy Fix"}
+                              {copiedFixId === item.id ? "Copied" : "Copy Fix"}
                             </button>
                           )}
                           <span className="text-brand-ink font-bold group-hover:translate-x-0.5 transition-transform flex items-center">
@@ -1849,10 +1943,10 @@ export const App: React.FC = () => {
                       }`}
                   >
                     {report.pattern_compliance.pattern_name_match
-                      ? `✓ Matches (${isUniversity ? report.selected_pattern_name : report.pattern_compliance.selected_category})`
+                      ? `Matches (${isUniversity ? report.selected_pattern_name : report.pattern_compliance.selected_category})`
                       : (isUniversity
-                        ? "✗ Structure Mismatch"
-                        : (report.pattern_compliance.has_pattern_name ? "✗ Mismatch" : "✗ Missing"))}
+                        ? "Structure Mismatch"
+                        : (report.pattern_compliance.has_pattern_name ? "Mismatch" : "Missing"))}
                   </span>
                 </div>
 
@@ -1865,7 +1959,7 @@ export const App: React.FC = () => {
                     className={`text-[10px] font-semibold mt-1 block ${report.pattern_compliance.marks_match ? "text-brand-ink font-bold" : "text-accent-ink"
                       }`}
                   >
-                    {report.pattern_compliance.marks_match ? "✓ Matches" : "✗ Mismatch"}
+                    {report.pattern_compliance.marks_match ? "Matches" : "Mismatch"}
                   </span>
                 </div>
 
@@ -1878,7 +1972,7 @@ export const App: React.FC = () => {
                     className={`text-[10px] font-semibold mt-1 block ${report.pattern_compliance.duration_match ? "text-brand-ink font-bold" : "text-accent-ink"
                       }`}
                   >
-                    {report.pattern_compliance.duration_match ? "✓ Matches" : "✗ Mismatch"}
+                    {report.pattern_compliance.duration_match ? "Matches" : "Mismatch"}
                   </span>
                 </div>
 
@@ -1894,7 +1988,7 @@ export const App: React.FC = () => {
                     className={`text-[10px] font-semibold mt-1 block ${report.pattern_compliance.sections_match ? "text-brand-ink font-bold" : "text-accent-ink"
                       }`}
                   >
-                    {report.pattern_compliance.sections_match ? "✓ Matches" : "✗ Incomplete"}
+                    {report.pattern_compliance.sections_match ? "Matches" : "Incomplete"}
                   </span>
                 </div>
               </div>
@@ -3083,7 +3177,7 @@ export const App: React.FC = () => {
                                   {q.has_wh_question ? (
                                     <span className="text-accent-ink font-bold">&apos;{q.wh_word_found}&apos;</span>
                                   ) : (
-                                    <span className="text-ink-faint">✓ None</span>
+                                    <span className="text-ink-faint">None</span>
                                   )}
                                 </td>
                                 <td className="py-2.5 px-3 whitespace-nowrap">
@@ -3527,10 +3621,10 @@ export const App: React.FC = () => {
                       </p>
                       <div className="text-[11px] text-ink-faint">
                         {report.notation_check.questions_with_issues_count === 0 ? (
-                          <span className="text-brand-ink font-bold">✓ No notation errors detected</span>
+                          <span className="text-brand-ink font-bold">No notation errors detected</span>
                         ) : (
                           <span className="text-accent-ink font-mono font-bold">
-                            ⚠️ {report.notation_check.questions_with_issues_count} question(s) need review
+                            {report.notation_check.questions_with_issues_count} question(s) need review
                           </span>
                         )}
                       </div>
@@ -3695,7 +3789,7 @@ export const App: React.FC = () => {
                                   )}
                                   {q.formatting_verified ? (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-surface text-brand-ink border border-brand-line font-semibold">
-                                      ✓ Layout Verified
+                                      Layout Verified
                                     </span>
                                   ) : (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-muted text-ink-muted border border-line">

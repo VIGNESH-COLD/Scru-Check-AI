@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import threading
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
@@ -105,6 +106,12 @@ class PGVectorSyllabusStore:
                     f"ON {self.table_name} (unit_number);"
                 )
             )
+            await conn.execute(
+                text(
+                    f"CREATE INDEX IF NOT EXISTS idx_{self.table_name}_embedding_hnsw "
+                    f"ON {self.table_name} USING hnsw (embedding vector_cosine_ops);"
+                )
+            )
 
     async def upsert_topics(
         self,
@@ -142,8 +149,8 @@ class PGVectorSyllabusStore:
             ) VALUES (
                 :topic_id, :syllabus_id, :course_code, :course_title,
                 :unit_number, :unit_title, :raw_unit_heading, :topic_title,
-                :subtopics, :content, :co_identifiers, :source_page,
-                :source_file, :is_unrecognized_unit, :metadata, :embedding
+                CAST(:subtopics AS jsonb), :content, CAST(:co_identifiers AS jsonb), :source_page,
+                :source_file, :is_unrecognized_unit, CAST(:metadata AS jsonb), CAST(:embedding AS vector)
             );
             """
 
@@ -229,10 +236,10 @@ class PGVectorSyllabusStore:
             unit_number, unit_title, raw_unit_heading, topic_title,
             subtopics, content, co_identifiers, source_page,
             source_file, is_unrecognized_unit, metadata,
-            1 - (embedding <=> :query_emb) AS cosine_similarity
+            1 - (embedding <=> CAST(:query_emb AS vector)) AS cosine_similarity
         FROM {self.table_name}
         {where_clause}
-        ORDER BY embedding <=> :query_emb ASC
+        ORDER BY embedding <=> CAST(:query_emb AS vector) ASC
         LIMIT :top_k;
         """
 
@@ -302,29 +309,32 @@ class SimplePersistentSyllabusStore:
         self.storage_path = Path(path)
         self._index: dict[str, dict[str, Any]] = {}
         self._loaded = False
+        self._lock = threading.RLock()
 
     async def initialize(self) -> None:
         """Load persistent index from disk if it exists."""
-        if self._loaded:
-            return
-        if self.storage_path.exists():
-            try:
-                with open(self.storage_path, encoding="utf-8") as f:
-                    self._index = json.load(f)
-            except Exception as e:
-                logger.warning(f"Could not load index from {self.storage_path}: {e}")
+        with self._lock:
+            if self._loaded:
+                return
+            if self.storage_path.exists():
+                try:
+                    with open(self.storage_path, encoding="utf-8") as f:
+                        self._index = json.load(f)
+                except Exception as e:
+                    logger.warning(f"Could not load index from {self.storage_path}: {e}")
+                    self._index = {}
+            else:
                 self._index = {}
-        else:
-            self._index = {}
-        self._loaded = True
+            self._loaded = True
 
     def _persist(self) -> None:
         """Save index to storage path atomically."""
-        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        temp_file = self.storage_path.with_suffix(".tmp")
-        with open(temp_file, "w", encoding="utf-8") as f:
-            json.dump(self._index, f, indent=2)
-        temp_file.replace(self.storage_path)
+        with self._lock:
+            self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+            temp_file = self.storage_path.with_suffix(".tmp")
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump(self._index, f, indent=2)
+            temp_file.replace(self.storage_path)
 
     async def upsert_topics(
         self,
@@ -334,45 +344,48 @@ class SimplePersistentSyllabusStore:
     ) -> int:
         """Repeatable ingestion: removes previous topics of syllabus_id before indexing new ones."""
         syllabus_id = validate_syllabus_id(syllabus_id)
-        await self.initialize()
-
         if len(topics) != len(embeddings):
             raise ValueError(
                 f"Topics count ({len(topics)}) does not match embeddings count ({len(embeddings)})"
             )
 
-        # Delete existing entries with this syllabus_id to guarantee no duplicate records
-        keys_to_remove = [k for k, v in self._index.items() if v.get("syllabus_id") == syllabus_id]
-        for k in keys_to_remove:
-            del self._index[k]
+        with self._lock:
+            await self.initialize()
 
-        # Insert new records
-        for topic, emb in zip(topics, embeddings, strict=True):
-            self._index[topic.topic_id] = {
-                "syllabus_id": syllabus_id,
-                "topic": topic.model_dump(),
-                "embedding": emb,
-            }
+            # Delete existing entries with this syllabus_id to guarantee no duplicate records
+            keys_to_remove = [k for k, v in self._index.items() if v.get("syllabus_id") == syllabus_id]
+            for k in keys_to_remove:
+                del self._index[k]
 
-        self._persist()
+            # Insert new records
+            for topic, emb in zip(topics, embeddings, strict=True):
+                self._index[topic.topic_id] = {
+                    "syllabus_id": syllabus_id,
+                    "topic": topic.model_dump(),
+                    "embedding": emb,
+                }
+
+            self._persist()
         return len(topics)
 
     async def delete_syllabus(self, syllabus_id: str) -> int:
         """Remove all records for the syllabus."""
         syllabus_id = validate_syllabus_id(syllabus_id)
-        await self.initialize()
-        keys_to_remove = [k for k, v in self._index.items() if v.get("syllabus_id") == syllabus_id]
-        for k in keys_to_remove:
-            del self._index[k]
-        if keys_to_remove:
-            self._persist()
-        return len(keys_to_remove)
+        with self._lock:
+            await self.initialize()
+            keys_to_remove = [k for k, v in self._index.items() if v.get("syllabus_id") == syllabus_id]
+            for k in keys_to_remove:
+                del self._index[k]
+            if keys_to_remove:
+                self._persist()
+            return len(keys_to_remove)
 
     async def has_syllabus(self, syllabus_id: str) -> bool:
         """Check if any topics exist for a given syllabus ID."""
         syllabus_id = validate_syllabus_id(syllabus_id)
-        await self.initialize()
-        return any(v.get("syllabus_id") == syllabus_id for v in self._index.values())
+        with self._lock:
+            await self.initialize()
+            return any(v.get("syllabus_id") == syllabus_id for v in self._index.values())
 
     async def search(
         self,
@@ -384,10 +397,12 @@ class SimplePersistentSyllabusStore:
         """Perform exact cosine similarity search over stored embeddings."""
         if syllabus_id:
             syllabus_id = validate_syllabus_id(syllabus_id)
-        await self.initialize()
 
-        if not self._index:
-            return []
+        with self._lock:
+            await self.initialize()
+            if not self._index:
+                return []
+            snapshot = list(self._index.values())
 
         q_vec = np.array(query_embedding, dtype=np.float32)
         q_norm = np.linalg.norm(q_vec)
@@ -396,7 +411,7 @@ class SimplePersistentSyllabusStore:
 
         scored_candidates: list[tuple[float, dict[str, Any]]] = []
 
-        for item in self._index.values():
+        for item in snapshot:
             if syllabus_id and item.get("syllabus_id") != syllabus_id:
                 continue
 

@@ -6,6 +6,7 @@ import sys
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.schemas.blooms_taxonomy import (
@@ -65,8 +66,9 @@ logger = logging.getLogger("scrucheck.api")
 app = FastAPI(
     title="Institutional Question Paper Scrutiny API",
     version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if settings.DOCS_ENABLED else None,
+    redoc_url="/redoc" if settings.DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if settings.DOCS_ENABLED else None,
 )
 
 # 1. CORS Configuration (Strict Origins, no wildcards when credentials allowed)
@@ -177,7 +179,7 @@ async def check_question_paper_format(
         validated_s = await file_validator.validate_upload(syllabus_file, is_syllabus=True)
 
     try:
-        extraction_result = extractor.extract(validated_qp.temp_path)
+        extraction_result = await run_in_threadpool(extractor.extract, validated_qp.temp_path)
         full_text = extraction_result.get("full_text", "")
         if not full_text.strip():
             raise HTTPException(
@@ -185,7 +187,8 @@ async def check_question_paper_format(
                 detail="Could not extract readable text from the uploaded document.",
             )
 
-        report = checker.check_compliance(
+        report = await run_in_threadpool(
+            checker.check_compliance,
             full_text,
             exam_type=exam_type,
             pattern_name=pattern_name,
@@ -193,8 +196,14 @@ async def check_question_paper_format(
         )
         report.qp_filename = validated_qp.sanitized_filename
 
+        parsed_questions = []
+        try:
+            parsed_questions = await run_in_threadpool(question_parser.parse_from_text, full_text)
+        except Exception as e:
+            logger.warning("Question parsing encountered error: %s", e)
+
         if validated_s and validated_s.temp_path.exists():
-            s_result = extractor.extract(validated_s.temp_path)
+            s_result = await run_in_threadpool(extractor.extract, validated_s.temp_path)
             s_text = s_result.get("full_text", "")
             report.syllabus_filename = validated_s.sanitized_filename
             report.syllabus_extracted_text = s_text
@@ -216,15 +225,13 @@ async def check_question_paper_format(
                     course_code=extracted_code,
                 )
 
-                # Extract questions from question paper text
-                questions = question_parser.parse_from_text(full_text)
-                if questions:
+                if parsed_questions:
                     scope_config = ExamScopeConfig(
                         pattern_name=pattern_name,
                         exam_type=exam_type,
                     )
                     report.syllabus_alignment = await syllabus_mapper.map_questions_batch(
-                        questions=questions,
+                        questions=parsed_questions,
                         syllabus_id=clean_s_id,
                         scope_config=scope_config,
                     )
@@ -234,7 +241,6 @@ async def check_question_paper_format(
 
         # Automatically execute Criterion 4 Mark & Time Distribution Scrutiny (Strict Zero-Score)
         try:
-            parsed_questions = question_parser.parse_from_text(full_text)
             if parsed_questions:
                 syllabus_topics: dict[str, str] = {}
                 learning_outcomes: dict[str, str] = {}
@@ -264,7 +270,8 @@ async def check_question_paper_format(
         # Automatically execute Criterion 9 Repetition Risk Scrutiny (Strict Zero-Score)
         try:
             if parsed_questions:
-                report.repetition_risk = repetition_risk_analyzer.analyze_paper(
+                report.repetition_risk = await run_in_threadpool(
+                    repetition_risk_analyzer.analyze_paper,
                     current_questions=parsed_questions,
                 )
         except Exception as e:
@@ -301,7 +308,7 @@ async def check_question_paper_format(
         report.llm_provider_used = llm_summary.get("summary_label", "Local Rule-Based Fallback")
         llm_service.print_final_summary()
 
-        save_report(report)
+        await run_in_threadpool(save_report, report)
         return report
     finally:
         validated_qp.cleanup()
@@ -316,7 +323,7 @@ async def extract_syllabus_text(
     """Extract and return text from an uploaded syllabus document. Strictly accepts PDF and DOCX."""
     validated = await file_validator.validate_upload(file, is_syllabus=True)
     try:
-        extraction_result = extractor.extract(validated.temp_path)
+        extraction_result = await run_in_threadpool(extractor.extract, validated.temp_path)
         full_text = extraction_result.get("full_text", "")
         return {
             "filename": validated.sanitized_filename,
@@ -340,9 +347,9 @@ async def check_question_paper_regulation(
     """
     validated = await file_validator.validate_upload(file, is_syllabus=False)
     try:
-        extraction_result = extractor.extract(validated.temp_path)
+        extraction_result = await run_in_threadpool(extractor.extract, validated.temp_path)
         full_text = extraction_result.get("full_text", "")
-        return check_regulation(full_text, expected_year=expected_year)
+        return await run_in_threadpool(check_regulation, full_text, expected_year=expected_year)
     finally:
         validated.cleanup()
 
@@ -479,7 +486,8 @@ async def check_repetition_risk_endpoint(request: RepetitionRiskCheckRequest):
             status_code=400,
             detail="The 'questions' list cannot be empty. Please provide parsed examination questions.",
         )
-    return repetition_risk_analyzer.analyze_paper(
+    return await run_in_threadpool(
+        repetition_risk_analyzer.analyze_paper,
         current_questions=request.questions,
     )
 
@@ -532,10 +540,10 @@ async def check_grammar_endpoint(request: GrammarCheckRequest):
 # ---------------------------------------------------------------------------
 
 
-def _build_pdf_download_response(report: FormatComplianceReport) -> StreamingResponse:
+async def _build_pdf_download_response(report: FormatComplianceReport) -> StreamingResponse:
     """Helper to generate PDF bytes and return a streaming response with proper headers."""
     try:
-        pdf_bytes = generate_scrutiny_pdf(report)
+        pdf_bytes = await run_in_threadpool(generate_scrutiny_pdf, report)
     except Exception as e:
         logger.error("Failed to generate PDF for report %s: %s", report.report_id, e, exc_info=True)
         raise HTTPException(
@@ -580,14 +588,14 @@ async def download_scrutiny_report_pdf(report_id: str):
             detail="Invalid report ID format. Must be a valid UUID.",
         )
 
-    report = get_report(report_id)
+    report = await run_in_threadpool(get_report, report_id)
     if not report:
         raise HTTPException(
             status_code=404,
             detail=f"Scrutiny report '{report_id}' was not found or has expired.",
         )
 
-    return _build_pdf_download_response(report)
+    return await _build_pdf_download_response(report)
 
 
 @app.post("/api/v1/reports/download-pdf")
@@ -597,5 +605,5 @@ async def download_scrutiny_report_pdf_from_payload(report: FormatComplianceRepo
     Provides fallback support if in-memory cache was cycled.
     Strict requirement: PDF is the ONLY supported format.
     """
-    save_report(report)
-    return _build_pdf_download_response(report)
+    await run_in_threadpool(save_report, report)
+    return await _build_pdf_download_response(report)

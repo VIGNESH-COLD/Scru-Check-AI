@@ -1066,10 +1066,6 @@ def generate_scrutiny_pdf(report: FormatComplianceReport) -> bytes:
         "StaffTitle", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=16,
         leading=19, textColor=COLOR_PRIMARY_DARK,
     )
-    subtitle = ParagraphStyle(
-        "StaffSubtitle", parent=styles["Normal"], fontName="Helvetica", fontSize=8,
-        leading=11, textColor=COLOR_MUTED,
-    )
     section = ParagraphStyle(
         "StaffSection", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10,
         leading=13, textColor=COLOR_PRIMARY_DARK, spaceBefore=10, spaceAfter=5,

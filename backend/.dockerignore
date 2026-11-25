@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+generated_reports/
+storage/
+uploads/
+output/
+tmp/
+tests/
+local_model/

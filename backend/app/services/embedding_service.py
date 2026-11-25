@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
@@ -29,6 +30,7 @@ class SentenceTransformerEmbeddingService:
 
     _instance = None
     _model: Any = None
+    _model_lock = threading.Lock()
 
     def __init__(self, model_name: str | None = None):
         self.model_name = model_name or settings.EMBEDDING_MODEL_NAME
@@ -36,21 +38,23 @@ class SentenceTransformerEmbeddingService:
 
     @classmethod
     def get_model(cls, model_name: str | None = None) -> SentenceTransformer:
-        """Lazy-load and cache the SentenceTransformer model in memory.
-        
+        """Lazy-load and cache the SentenceTransformer model in memory (thread-safe).
+
         Checks for a local pre-downloaded model in backend/local_model/all-MiniLM-L6-v2
         first to ensure instantaneous 0.6s loading, zero network latency, and 100% offline support.
         Falls back to Hugging Face Hub if local files are not present.
         """
         if cls._model is None:
-            from sentence_transformers import SentenceTransformer
+            with cls._model_lock:
+                if cls._model is None:
+                    from sentence_transformers import SentenceTransformer
 
-            local_path = Path(__file__).resolve().parent.parent.parent / "local_model" / "all-MiniLM-L6-v2"
-            if local_path.exists() and (local_path / "model.safetensors").exists():
-                cls._model = SentenceTransformer(str(local_path), local_files_only=True)
-            else:
-                target_model = model_name or settings.EMBEDDING_MODEL_NAME
-                cls._model = SentenceTransformer(target_model)
+                    local_path = Path(__file__).resolve().parent.parent.parent / "local_model" / "all-MiniLM-L6-v2"
+                    if local_path.exists() and (local_path / "model.safetensors").exists():
+                        cls._model = SentenceTransformer(str(local_path), local_files_only=True)
+                    else:
+                        target_model = model_name or settings.EMBEDDING_MODEL_NAME
+                        cls._model = SentenceTransformer(target_model)
         return cls._model
 
     def get_text_embedding(self, text: str) -> list[float]:
