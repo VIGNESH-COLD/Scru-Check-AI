@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import tempfile
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
@@ -51,10 +53,21 @@ class SentenceTransformerEmbeddingService:
 
                     local_path = Path(__file__).resolve().parent.parent.parent / "local_model" / "all-MiniLM-L6-v2"
                     if local_path.exists() and (local_path / "model.safetensors").exists():
-                        cls._model = SentenceTransformer(str(local_path), local_files_only=True)
+                        cls._model = SentenceTransformer(
+                            str(local_path),
+                            local_files_only=True,
+                            device="cpu",
+                        )
                     else:
                         target_model = model_name or settings.EMBEDDING_MODEL_NAME
-                        cls._model = SentenceTransformer(target_model)
+                        cache_dir = os.environ.get("HF_HOME") or str(
+                            Path(tempfile.gettempdir()) / "scrucheck_hf_cache"
+                        )
+                        cls._model = SentenceTransformer(
+                            target_model,
+                            device="cpu",
+                            cache_folder=cache_dir,
+                        )
         return cls._model
 
     def get_text_embedding(self, text: str) -> list[float]:

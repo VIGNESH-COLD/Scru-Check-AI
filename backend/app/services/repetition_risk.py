@@ -119,19 +119,19 @@ class RepetitionRiskAnalyzer:
         pyq_cleaned = [clean_question_text(q.text) for q in pyq_list]
         pyq_tokens = [tokenize_content_words(t) for t in pyq_cleaned]
 
-        # Generate dense embeddings for semantic analysis
+        # Generate dense embeddings for semantic analysis (with graceful lexical fallback)
         all_texts = cur_cleaned + pyq_cleaned
-        raw_embeddings = self.embedder.get_text_embeddings(all_texts)
-        embeddings = np.array(raw_embeddings, dtype=np.float32)
-
-        cur_embeddings = embeddings[:n_cur]
-        pyq_embeddings = embeddings[n_cur:] if n_pyq > 0 else np.empty((0, embeddings.shape[1]), dtype=np.float32)
-
-        # Internal similarity matrix: n_cur x n_cur
-        internal_sim = np.dot(cur_embeddings, cur_embeddings.T)
-
-        # Historical similarity matrix: n_cur x n_pyq
-        historical_sim = np.dot(cur_embeddings, pyq_embeddings.T) if n_pyq > 0 else None
+        try:
+            raw_embeddings = self.embedder.get_text_embeddings(all_texts)
+            embeddings = np.array(raw_embeddings, dtype=np.float32)
+            cur_embeddings = embeddings[:n_cur]
+            pyq_embeddings = embeddings[n_cur:] if n_pyq > 0 else np.empty((0, embeddings.shape[1]), dtype=np.float32)
+            internal_sim = np.dot(cur_embeddings, cur_embeddings.T)
+            historical_sim = np.dot(cur_embeddings, pyq_embeddings.T) if n_pyq > 0 else None
+        except Exception as exc:
+            logger.warning("Dense embedding unavailable in RepetitionRiskAnalyzer; using lexical fallback: %s", exc)
+            internal_sim = np.zeros((n_cur, n_cur), dtype=np.float32)
+            historical_sim = np.zeros((n_cur, n_pyq), dtype=np.float32) if n_pyq > 0 else None
 
         evaluations: list[QuestionRepetitionEvaluation] = []
         internal_flags_count = 0
