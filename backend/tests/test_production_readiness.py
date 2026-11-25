@@ -29,12 +29,16 @@ def _create_pdf(text: str) -> bytes:
     return raw
 
 
-def test_settings_cors_comma_and_json_parsing() -> None:
+def test_settings_cors_comma_and_json_parsing(monkeypatch) -> None:
     s_csv = Settings(BACKEND_CORS_ORIGINS="https://a.vercel.app, https://b.example.com/")
     assert s_csv.BACKEND_CORS_ORIGINS == ["https://a.vercel.app", "https://b.example.com"]
 
     s_json = Settings(BACKEND_CORS_ORIGINS='["https://c.vercel.app/"]')
     assert s_json.BACKEND_CORS_ORIGINS == ["https://c.vercel.app"]
+
+    monkeypatch.setenv("BACKEND_CORS_ORIGINS", "http://localhost:5173,https://scrucheck.vercel.app")
+    s_env = Settings()
+    assert s_env.BACKEND_CORS_ORIGINS == ["http://localhost:5173", "https://scrucheck.vercel.app"]
 
 
 def test_settings_anchors_relative_paths_and_docs_toggle() -> None:

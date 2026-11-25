@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import AliasChoices, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"  # "development" or "production"
     ENABLE_API_DOCS: bool | None = None
     API_V1_STR: str = "/api/v1"
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    BACKEND_CORS_ORIGINS: Annotated[list[str], NoDecode] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
     @property
     def DOCS_ENABLED(self) -> bool:
