@@ -135,7 +135,7 @@ const PATTERNS_DATA: Record<string, PatternItem[]> = {
   ],
 };
 
-const API_BASE = (import.meta.env.VITE_API_URL || "/api/v1").replace(/\/+$/, "");
+const API_BASE = (import.meta.env.VITE_API_URL || "/api/v1").trim().replace(/\/+$/, "");
 
 const TABS = ["CAT-1", "CAT-2", "CAT-3", "University"];
 
