@@ -1232,13 +1232,69 @@ export const App: React.FC = () => {
     <div className="app-shell min-h-screen bg-canvas text-ink py-4 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-brand selection:text-btn-brand overflow-x-clip">
       <div className="max-w-6xl mx-auto space-y-5">
         {/* Top Header Card */}
-        <header className="hero-panel rounded-2xl border border-line bg-surface p-3.5 sm:px-6 sm:py-5 flex items-center justify-between gap-3">
-          <div className="brand-identity min-w-0">
-            <div>
-              <h1 className="brand-wordmark text-lg sm:text-2xl font-bold text-ink leading-tight truncate">
-                Scru-Check-AI
-              </h1>
-            </div>
+        <header className="hero-panel rounded-2xl border border-line bg-surface p-3.5 sm:px-6 sm:py-4 flex items-center justify-between gap-3">
+          <div className="brand-identity min-w-0 flex items-center">
+            <h1 className="sr-only">ScruCheck AI</h1>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 384 74"
+              fill="none"
+              role="img"
+              aria-label="ScruCheck AI"
+              className="brand-wordmark h-9 sm:h-11 w-auto max-w-full text-ink"
+            >
+              <rect
+                x="2"
+                y="2"
+                width="380"
+                height="70"
+                rx="35"
+                fill="currentColor"
+                fillOpacity="0.03"
+                stroke="currentColor"
+                strokeWidth="2.8"
+              />
+              <circle cx="38" cy="37" r="7" fill="currentColor" />
+              <circle
+                cx="38"
+                cy="37"
+                r="14"
+                stroke="currentColor"
+                strokeOpacity="0.28"
+                strokeWidth="1.5"
+              />
+              <text
+                x="68"
+                y="47"
+                fill="currentColor"
+                fontFamily="'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif"
+                fontSize="34"
+                fontWeight="800"
+                letterSpacing="-0.8"
+              >
+                ScruCheck
+              </text>
+              <line
+                x1="266"
+                y1="18"
+                x2="266"
+                y2="56"
+                stroke="currentColor"
+                strokeOpacity="0.3"
+                strokeWidth="2"
+              />
+              <text
+                x="284"
+                y="47"
+                fill="currentColor"
+                fontFamily="'JetBrains Mono', ui-monospace, monospace"
+                fontSize="32"
+                fontWeight="700"
+                letterSpacing="1"
+              >
+                AI
+              </text>
+            </svg>
           </div>
           <button
             type="button"

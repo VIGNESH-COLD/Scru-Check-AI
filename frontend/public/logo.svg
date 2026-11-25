@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 74" fill="none" role="img" aria-label="ScruCheck AI">
+  <rect x="2" y="2" width="380" height="70" rx="35" fill="#FFFFFF" stroke="#0A0A0A" stroke-width="2.8" />
+  <circle cx="38" cy="37" r="7" fill="#0A0A0A" />
+  <circle cx="38" cy="37" r="14" stroke="#0A0A0A" stroke-opacity="0.28" stroke-width="1.5" />
+  <text x="68" y="47" fill="#0A0A0A" font-family="'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif" font-size="34" font-weight="800" letter-spacing="-0.8">ScruCheck</text>
+  <line x1="266" y1="18" x2="266" y2="56" stroke="#0A0A0A" stroke-opacity="0.3" stroke-width="2" />
+  <text x="284" y="47" fill="#0A0A0A" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="32" font-weight="700" letter-spacing="1">AI</text>
+</svg>
