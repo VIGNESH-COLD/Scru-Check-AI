@@ -736,9 +736,9 @@ export const App: React.FC = () => {
     setPdfDownloadError(null);
     setPdfDownloadSuccess(null);
 
-    const startTime = Date.now();
+    const startTime = performance.now();
     const timerInterval = setInterval(() => {
-      const elapsed = (Date.now() - startTime) / 1000;
+      const elapsed = Math.max(0, (performance.now() - startTime) / 1000);
       setElapsedSeconds(elapsed);
 
       setProgress((prev) => {
